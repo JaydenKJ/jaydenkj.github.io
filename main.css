@@ -1,0 +1,48 @@
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap");
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Ubuntu";
+}
+
+.navbar {
+  background-color: red;
+  position: fixed;
+  width: 100%;
+  padding: 0.7em 1em;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+}
+.navbar .navbar-left .logo {
+  text-decoration: none;
+  color: black;
+  font-weight: 700;
+  font-size: 1.8em;
+}
+.navbar .navbar-right a {
+  text-decoration: none;
+}
+.navbar .navbar-right .navbar-ul {
+  list-style-type: none;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+}
+.navbar .navbar-right .navbar-ul .navbar-li {
+  display: flex;
+  align-items: center;
+}
+.navbar .navbar-right .navbar-ul .navbar-li img {
+  height: 1.8em;
+}
+.navbar .navbar-right .navbar-ul .navbar-li .navbar-p {
+  color: black;
+  margin: 0;
+  font-size: 0.8em;
+}
+.navbar .navbar-right .navbar-ul .navbar-li .navbar-p span {
+  display: block;
+}/*# sourceMappingURL=main.css.map */
