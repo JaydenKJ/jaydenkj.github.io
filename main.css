@@ -3,6 +3,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: "Ubuntu";
+  background-color: beige;
 }
 
 .navbar {
@@ -14,6 +15,7 @@ body {
   justify-content: space-between;
   align-items: center;
   box-sizing: border-box;
+  top: 0;
 }
 .navbar .navbar-left .logo {
   text-decoration: none;
@@ -45,4 +47,132 @@ body {
 }
 .navbar .navbar-right .navbar-ul .navbar-li .navbar-p span {
   display: block;
+}
+
+.hero {
+  margin-top: 3.5em;
+  display: block;
+  margin-left: 1em;
+  margin-right: 1em;
+  justify-content: center;
+}
+.hero .hero-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero .hero-main .hero-main-open {
+  text-align: center;
+  font-size: 2em;
+  font-weight: 300;
+  margin-bottom: 0;
+}
+.hero .hero-main .hours {
+  font-weight: 300;
+  padding: 0.5em 1em;
+  background-color: red;
+  border-radius: 1em;
+  text-align: center;
+  font-size: 1.2em;
+}
+.hero .hero-main .hours span {
+  display: block;
+}
+.hero .hero-main .hours .hours-title {
+  font-size: 1.5em;
+  margin-bottom: 0.2em;
+}
+.hero .hero-main .reserve-berries {
+  padding: 0.5em 1em;
+  background-color: rgb(174, 0, 0);
+  color: white;
+  border-radius: 1em;
+  text-decoration: none;
+  font-size: 1.5em;
+  margin-top: -0.5em;
+}
+.hero .hero-main .contact-us {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.hero .hero-main .contact-us .contact-text {
+  font-size: 2em;
+  font-weight: 300;
+  margin-bottom: 0.5em;
+}
+.hero .hero-main .contact-us .contact-links {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 1em;
+}
+.hero .hero-main .contact-us .contact-links a {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  margin: 0 1em;
+}
+.hero .hero-main .contact-us .contact-links a img {
+  width: 2em;
+}
+.hero .status {
+  display: flex;
+  justify-content: center;
+}
+.hero .status .hero-h3 {
+  font-weight: 300;
+  font-size: 2em;
+  text-align: center;
+  font-size: 2em;
+}
+.hero .status .hero-h3 span {
+  display: block;
+}
+.hero .status .hero-h3 .status-closed-for-season {
+  font-weight: 700;
+  color: rgb(174, 0, 0);
+}
+.hero .hero-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 1em;
+}
+.hero .hero-right .prices {
+  text-align: center;
+  font-size: 2em;
+  font-weight: 300;
+  margin-bottom: 0.5em;
+}
+.hero .hero-right .prices-img {
+  width: 20em;
+  border-radius: 1em;
+}
+
+@media only screen and (min-width: 768px) {
+  .navbar .navbar-left .logo {
+    font-size: 2.5em;
+  }
+  .navbar .navbar-right .navbar-ul .navbar-li .navbar-p .city-span {
+    display: inline;
+    font-size: 1.5em;
+  }
+  .hero {
+    display: flex;
+  }
+  .hero .hero-main {
+    margin-right: 3em;
+  }
+  .hero .status {
+    margin-right: 3em;
+    margin-top: 2em;
+  }
+  .hero .status .hero-h3 span {
+    display: inline;
+  }
+  .hero .hero-right {
+    margin-left: 3em;
+  }
 }/*# sourceMappingURL=main.css.map */
