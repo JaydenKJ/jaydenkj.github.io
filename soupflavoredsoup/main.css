@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+:root {
+  --gradient-start: #0097b2;
+  --gradient-end: #7ed957;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #38b6ff;
+  font-family: "Montserrat";
+}
+
+.navbar {
+  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  border-radius: 1em;
+  display: flex;
+  justify-content: center;
+  margin: 0.5em;
+  padding: 0.5em 0.5em;
+}
+.navbar .logo {
+  text-decoration: none;
+  color: black;
+  font-size: 1.8em;
+  font-weight: 700;
+}
+
+.hero {
+  margin: 0.5em;
+  display: flex;
+  flex-direction: column;
+}
+.hero .hero-text {
+  padding: 0.5em;
+  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  border-radius: 1em;
+  font-weight: 500;
+  text-align: center;
+  font-size: 1.2em;
+}
+.hero .buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.hero .buttons a {
+  text-decoration: none;
+  color: black;
+  padding: 0.5em 1em;
+  background-color: #319e7a;
+  margin: 0.5em 0;
+  border-radius: 2em;
+  font-weight: 700;
+  width: fit-content;
+  font-size: 1.5em;
+}
+.hero .buttons .img .soup-n-plant {
+  height: 10em;
+  width: 10em;
+}
+
+.video {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+.video p {
+  font-size: 1.8em;
+  padding: 0.5em 1em;
+  border-radius: 1em;
+  background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+  font-weight: 700;
+  margin-bottom: -1em;
+  margin-top: 2em;
+}
+.video video {
+  height: 20em;
+  width: 20em;
+}/*# sourceMappingURL=main.css.map */
