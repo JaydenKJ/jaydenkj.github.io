@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reserve Strawberries</title>
+    <link rel="stylesheet" href="../main.css">
+    <link rel="icon" type="image/x-icon" href="../content/favicon.ico">
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-left">
+            <a href="../" class="logo">Bell Berries</a>
+        </div>
+        <div class="navbar-right">
+
+            <a href="https://maps.app.goo.gl/3f7HoFbgJQWVAWgP9">
+                <ul class="navbar-ul">
+                    <li class="navbar-li">
+                        <img src="../content/location.svg" alt="Location Icon">
+                    </li>
+                    <li class="navbar-li">
+                        <p class="navbar-p">
+                            <span class="city-span">14891 Bell Dr.</span>
+                            <span class="city-span">Livingston, CA</span>
+                        </p>
+                    </li>
+                </ul>
+            </a>  
+        </div>
+    </div>
+    <div class="hero">
+        <div class="form">
+            <form id="berryForm">
+                <label for="name">Your Name</label>
+                <input type="text" name="name" required>
+                <label for="date">Select a date not more than 2 days in advance</label>
+                <input type="date" name="date" required>
+                <label for="time">Select a time not before 9:30AM or after 3:00PM</label>
+                <input type="time" name="time" min="09:30" max="15:00" required>
+                <label for="amount">How many packs of strawberries do you want? (Refer to price chart on homepage)</label>
+                <input type="text" name="amount" required>
+                <label for="comments">Any comments? (Not Required)</label>
+                <input type="text" name="comments">
+                <input type="submit" value="Submit" class="submit">
+            </form>
+        </div>
+        <div class="return-container">
+        <a href="../open" class="return">Return</a>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('berryForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+    
+            // Collect form data
+            var formData = new FormData(e.target);
+            var data = {};
+            formData.forEach((value, key) => data[key] = value);
+    
+            // Validate date to ensure it's not more than 2 days in advance
+            var today = new Date();
+            var maxDate = new Date(today);
+            maxDate.setDate(today.getDate() + 2);
+            var selectedDate = new Date(data.date);
+            
+            if (selectedDate > maxDate) {
+                alert('The selected date cannot be more than 2 days in advance.');
+                return;
+            }
+    
+            // Send data to Google Apps Script
+            fetch('https://script.google.com/macros/s/AKfycbxBaHqJH-Ax9q4RSXWCnuJgn8gbWpuzexGFxmqFeldT_UsvHOzho_tWmi1THjTzz3Pq/exec', {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data),
+            }).then(response => {
+                alert('Form submitted successfully');
+                document.getElementById('berryForm').reset(); // Clear the form
+            }).catch(error => {
+                alert('Error submitting form');
+                console.error('Error:', error);
+            });
+        });
+    </script>
+    
+
+</body>
+</html>
+
+</body>
+</html>
