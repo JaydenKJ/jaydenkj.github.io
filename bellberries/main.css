@@ -157,47 +157,68 @@ body {
   width: 20em;
   border-radius: 1em;
 }
+.hero .announcement-div {
+  display: block;
+}
+.hero .announcement-div .announcement {
+  color: rgb(174, 0, 0);
+  text-align: center;
+  margin-top: 2.5em;
+  font-size: 2em;
+}
 .hero .form {
-  margin-top: 5em;
+  display: block;
 }
 .hero .form form {
-  text-align: center;
-  font-size: 1.2em;
-  display: grid;
-  place-items: center;
-}
-.hero .form form input {
-  display: block;
-  align-items: center;
-  background-color: rgb(174, 0, 0);
-  border: none;
-  border-radius: 1em;
-  padding: 0.3em 0.5em;
-  margin-bottom: 1em;
-  text-align: center;
-  margin-top: 0.2em;
-  color: white;
-  font-size: 1.1em;
-}
-.hero .return-container {
+  font-size: 1em;
   display: flex;
   flex-direction: column;
 }
-.hero .return-container .return {
-  text-decoration: none;
-  padding: 0.5em 1em;
-  background-color: beige;
+.hero .form form .form-div {
+  margin: 0.5em 0;
+  display: flex;
+  justify-content: space-between;
   border: 0.2em solid;
   border-color: rgb(174, 0, 0);
-  color: rgb(174, 0, 0);
   border-radius: 1em;
-  display: flex;
-  justify-content: center;
+  padding: 0.5em 1em;
+}
+.hero .form form .form-div input {
+  border: none;
+  border-radius: 1em;
+  margin-left: 1em;
+  padding: 0.5em;
+}
+.hero .form form .your-name {
+  align-items: center;
+}
+.hero .form form .submit-div {
+  text-align: center;
   margin-bottom: 1em;
 }
-.hero .return-container .return:hover {
+.hero .form form .submit-div .submit {
+  border: 0.2em solid;
+  font-size: 1.2em;
+  border-color: rgb(174, 0, 0);
   background-color: rgb(174, 0, 0);
   color: white;
+  border-radius: 1em;
+  padding: 0.3em 0.5em;
+  margin-top: 0.5em;
+  cursor: pointer;
+}
+.hero .return-div {
+  text-align: center;
+}
+.hero .return-div .return {
+  text-decoration: none;
+  color: black;
+  background-color: beige;
+  border: 0.2em solid;
+  border-radius: 1em;
+  border-color: rgb(174, 0, 0);
+  padding: 0.3em 0.5em;
+  font-size: 1.2em;
 }
 
 @media only screen and (min-width: 768px) {
@@ -226,18 +247,10 @@ body {
   .hero .hero-right {
     margin-left: 3em;
   }
+  .hero .form {
+    margin-top: 3em;
+  }
   .hero .form form {
-    display: block;
-    text-align: left;
-  }
-  .hero .form form input {
-    display: block;
-  }
-  .return-container {
-    display: block;
-    margin-top: 6em;
-  }
-  .return-container .return {
-    display: block;
+    font-size: 1.2em;
   }
 }/*# sourceMappingURL=main.css.map */
