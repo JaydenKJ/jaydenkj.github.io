@@ -10,7 +10,7 @@
 <body>
     <div class="navbar">
         <div class="navbar-left">
-            <a href="../" class="logo">Bell Berries</a>
+            <a href="../open/" class="logo">Bell Berries</a>
         </div>
         <div class="navbar-right">
 
@@ -30,76 +30,94 @@
         </div>
     </div>
     <div class="hero">
+        <div class="announcement-div">
+            <h2 class="announcement">Reserve Strawberries</h2>
+        </div>
         <div class="form">
             <form id="berryForm">
-                <label for="name">Your Name</label>
-                <input type="text" name="name" required>
-                <label for="date">Select a date not more than 2 days in advance</label>
-                <input type="date" name="date" required>
-                <label for="time">Select a time not before 9:30AM or after 3:00PM</label>
-                <input type="time" name="time" min="09:30" max="15:00" required>
-                <label for="amount">How many packs of strawberries do you want? (Refer to price chart on homepage)</label>
-                <input type="text" name="amount" required>
-                <label for="comments">Any comments? (Not Required)</label>
-                <input type="text" name="comments">
-                <input type="submit" value="Submit" class="submit (takes a bit)" id="submit-button">
+                <div class="form-div your-name">
+                    <label for="name">Your Name</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-div your-name">
+                    <label for="date">Select a date not more than 2 days in advance</label>
+                    <input type="date" name="date" required>
+                </div>
+                <div class="form-div your-name">
+                    <label for="time">Select a time not before 9:30AM or after 3:00PM</label>
+                    <input type="time" name="time" min="09:30" max="15:00" required>
+                </div>
+                <div class="form-div your-name">
+                    <label for="amount">How many packs of strawberries do you want? (Refer to price chart on homepage)</label>
+                    <input type="text" name="amount" required>
+                </div>
+                <div class="form-div your-name">
+                    <label for="comments">Comments?</label>
+                    <input type="text" name="comments">
+                </div>
+                <div class="submit-div">
+                    <input type="submit" value="Submit" class="submit" id="submit-button">
+                </div>
+                <div class="return-div">
+                    <a href="../open" class="return">Home</a>
+                </div>
+               
             </form>
         </div>
-        <div class="return-container">
-        <a href="../open" class="return">Return</a>
-        </div>
+       
     </div>
     
     <script>
-    document.getElementById('berryForm').addEventListener('submit', function(e) {
-        e.preventDefault(); // Prevent form submission
-
-        var submitButton = document.getElementById('submit-button');
-        submitButton.disabled = true; // Disable the button to prevent multiple submissions
-        submitButton.value = 'Submitting...'; // Change button text to "Submitting..."
-
-        // Collect form data
-        var formData = new FormData(e.target);
-        var data = {};
-        formData.forEach((value, key) => data[key] = value);
-
-        // Validate date to ensure it's not more than 2 days in advance
-        var today = new Date();
-        var maxDate = new Date(today);
-        maxDate.setDate(today.getDate() + 2);
-        var selectedDate = new Date(data.date);
-        
-        if (selectedDate > maxDate) {
-            alert('The selected date cannot be more than 2 days in advance.');
-            submitButton.disabled = false; // Re-enable the button
-            submitButton.value = 'Submit'; // Reset button text
-            return;
-        }
-
-        // Send data to Google Apps Script
-        fetch('https://script.google.com/macros/s/AKfycbxBaHqJH-Ax9q4RSXWCnuJgn8gbWpuzexGFxmqFeldT_UsvHOzho_tWmi1THjTzz3Pq/exec', {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(data),
-        }).then(response => {
-            submitButton.value = 'Submitted'; // Change button text to "Submitted"
-            document.getElementById('berryForm').reset(); // Clear the form
-            setTimeout(() => {
-                submitButton.value = 'Submit'; // Reset button text after a short delay
+        document.getElementById('berryForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent form submission
+    
+            var submitButton = document.getElementById('submit-button');
+            submitButton.disabled = true; // Disable the button to prevent multiple submissions
+            submitButton.value = 'Submitting...'; // Change button text to "Submitting..."
+    
+            // Collect form data
+            var formData = new FormData(e.target);
+            var data = {};
+            formData.forEach((value, key) => data[key] = value);
+    
+            // Validate date to ensure it's not more than 2 days in advance
+            var today = new Date();
+            var maxDate = new Date(today);
+            maxDate.setDate(today.getDate() + 2);
+            var selectedDate = new Date(data.date);
+            
+            if (selectedDate > maxDate) {
+                alert('The selected date cannot be more than 2 days in advance.');
                 submitButton.disabled = false; // Re-enable the button
-            }, 2000); // Delay to show "Submitted" message
-        }).catch(error => {
-            alert('Error submitting form');
-            console.error('Error:', error);
-            submitButton.disabled = false; // Re-enable the button
-            submitButton.value = 'Submit'; // Reset button text
+                submitButton.value = 'Submit'; // Reset button text
+                return;
+            }
+    
+            // Send data to Google Apps Script
+            fetch('https://script.google.com/macros/s/AKfycbxBaHqJH-Ax9q4RSXWCnuJgn8gbWpuzexGFxmqFeldT_UsvHOzho_tWmi1THjTzz3Pq/exec', {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify(data),
+            }).then(response => {
+                submitButton.value = 'Submitted'; // Change button text to "Submitted"
+                document.getElementById('berryForm').reset(); // Clear the form
+                setTimeout(() => {
+                    submitButton.value = 'Submit'; // Reset button text after a short delay
+                    submitButton.disabled = false; // Re-enable the button
+                }, 2000); // Delay to show "Submitted" message
+            }).catch(error => {
+                alert('Error submitting form');
+                console.error('Error:', error);
+                submitButton.disabled = false; // Re-enable the button
+                submitButton.value = 'Submit'; // Reset button text
+            });
         });
-    });
-</script>
-
+    </script>
+    
     
 
 </body>
 </html>
 
-
+</body>
+</html>
