@@ -9,6 +9,7 @@ body {
 .hero {
   display: block;
   text-align: center;
+  height: 100vh;
 }
 .hero .link {
   text-decoration: none;
@@ -17,6 +18,11 @@ body {
   background-color: grey;
   border-radius: 1em;
   font-weight: 700;
+}
+
+a {
+  text-decoration: none;
+  color: black;
 }
 
 @media only screen and (min-width: 768px) {
