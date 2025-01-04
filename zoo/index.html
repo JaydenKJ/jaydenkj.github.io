@@ -50,6 +50,7 @@
             </div>    
         </div>
         <div class="bottom">
+            <div class="download" onclick="download()">Save QR code</div>
             <div class="done" onclick="done()">done</div>
         </div>
     </div>
@@ -111,6 +112,22 @@ function done() {
     document.getElementById('submitted').style.display = 'none';
 
 }
+
+function download() {
+        const qrDiv = document.getElementById("qr_code");
+        const qrImage = qrDiv.querySelector("img"); // Check for the generated QR code image
+
+        if (qrImage && qrImage.src) {
+            const link = document.createElement("a");
+            link.href = qrImage.src;
+            link.download = "qr-code.png"; // File name for download
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else {
+            alert("QR Code not generated yet!");
+        }
+    }
 
 
 

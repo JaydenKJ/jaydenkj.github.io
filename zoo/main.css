@@ -73,11 +73,11 @@ body .submitted .top .reservation-code .svg-wrapper img {
 }
 body .submitted .bottom {
   display: flex;
-  justify-content: right;
+  justify-content: space-between;
   border-top: 0.1em solid;
   border-color: gray;
 }
-body .submitted .bottom .done {
+body .submitted .bottom .done, body .submitted .bottom .download {
   padding: 0.2em 0.4em;
   font-size: 1.2em;
   background-color: rgb(222, 222, 222);
