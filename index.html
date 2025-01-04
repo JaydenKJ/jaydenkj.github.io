@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <h1>The Zoo</h1>
+    <form class="form" id="form">
+        <div class="form-element">
+            <label for="name">Your name</label>
+            <input type="text" name="name">
+        </div>
+        <div class="form-element">  
+            <label for="date">Date you want to visit</label>
+            <input type="date" name="date" required>
+        </div>
+        <div class="form-element"> 
+            <label for="people">How many people?</label>
+            <input type="number" name="people" required>
+        </div>
+        <div class="form-element">
+            <label for="phone-number">Phone number</label>
+            <input type="tel" name="phone_number" required>
+        </div>
+        <div class="form-element">
+            <label for="email">Email</label>
+            <input type="email" name="email" required>
+        </div>
+        <div class="form-element">
+            <input type="submit" value="submit">
+        </div>
+    </form>
+    <script>
+              document.getElementById('form').addEventListener('submit', function (e) {
+    e.preventDefault(); // Prevent default form submission
+
+    // Collect form data
+    var formData = new FormData(e.target);
+    var data = {};
+    formData.forEach((value, key) => data[key] = value);
+
+    // Send data to Google Apps Script
+    fetch('https://script.google.com/macros/s/AKfycbwoYfEWXFzgp6w4tmPK9uGaEKRe6BozYBXyCi1hhM7o6LLzi_4JmaK2UW4ho3ASN-_C/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        body: JSON.stringify(data),
+    }).then(() => {
+        document.getElementById('form').reset(); // Clear the form after successful submission
+    }).catch(error => {
+        console.error('Error:', error); // Log any errors to the console
+    });
+});
+
+    </script>
+</body>
+</html>
