@@ -115,12 +115,22 @@ function done() {
 
 function download() {
         const qrDiv = document.getElementById("qr_code");
-        const qrImage = qrDiv.querySelector("img"); // Check for the generated QR code image
+        const qrImage = qrDiv.querySelector("img"); // Check for generated image
+        const qrCanvas = qrDiv.querySelector("canvas"); // Check for generated canvas
 
         if (qrImage && qrImage.src) {
+            // If an <img> is present, download it
             const link = document.createElement("a");
             link.href = qrImage.src;
-            link.download = "qr-code.png"; // File name for download
+            link.download = "qr-code.png";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } else if (qrCanvas) {
+            // If a <canvas> is present, convert to image and download
+            const link = document.createElement("a");
+            link.href = qrCanvas.toDataURL("image/png");
+            link.download = "qr-code.png";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
