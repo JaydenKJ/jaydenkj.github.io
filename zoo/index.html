@@ -37,15 +37,23 @@
     </form>
     <div class="submitted" id="submitted" style="display: none;">
         <div class="top">
-            <p class="success">Your reservation has been successfully completed. Your reservation code is:</p>
+            <p class="success">Your reservation has been successfully completed. Please copy the reservation code by tapping it or screenshot or save the qr code as you will need it to check in on the date you selected.</p>
             <div class="reservation-code">
                 <p id="reservation_code" onclick="copyToClipboard()">PLACEHOLDER_TEXT</p>
                 <div class="svg-wrapper" onclick="copyToClipboard()">
                     <img src="copy-svgrepo-com.svg" alt="">
                 </div>
             </div>
+            <p class="copied" id="copied" style="display: none;">copied to clipboard</p>
+            <div class="qrcode-wrapper">
+                <div class="qrcode" id="qr_code">QR code generating...</div>
+            </div>    
+        </div>
+        <div class="bottom">
+            <div class="done" onclick="done()">done</div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
 document.getElementById('form').addEventListener('submit', async function (e) {
     e.preventDefault(); // Prevent default form submission
@@ -67,7 +75,7 @@ document.getElementById('form').addEventListener('submit', async function (e) {
             mode: 'no-cors'
         });
 
-        
+        // Notify the user of the ID and display it
         document.getElementById('form').reset(); // Clear the form
 
         // Update the reservation_code element and show the container
@@ -76,6 +84,11 @@ document.getElementById('form').addEventListener('submit', async function (e) {
 
         var submittedElement = document.getElementById('submitted');
         submittedElement.style.display = 'block'; // Show the submitted message
+
+        // Generate QR code
+        var qrCodeContainer = document.getElementById('qr_code');
+        qrCodeContainer.innerHTML = ''; // Clear any existing QR code
+        new QRCode(qrCodeContainer, uniqueId); // Generate a new QR code
     } catch (error) {
         console.error('Error:', error);
         alert('Error submitting form');
@@ -90,6 +103,13 @@ function copyToClipboard() {
         console.error('Failed to copy: ', err);
         alert('Failed to copy the reservation code.');
     });
+    document.getElementById('copied').style.display = 'block';
+}
+
+function done() {
+
+    document.getElementById('submitted').style.display = 'none';
+
 }
 
 

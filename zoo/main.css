@@ -28,6 +28,24 @@ body .submitted .top {
   flex-direction: column;
   padding: 1em;
 }
+body .submitted .top .copied {
+  margin-top: -0.8em;
+  text-align: center;
+}
+body .submitted .top .success {
+  margin-top: -0.5em;
+}
+body .submitted .top .qrcode-wrapper {
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  border: 0.1em solid;
+  border-radius: 1em;
+  border-color: gray;
+}
+body .submitted .top .qrcode-wrapper .qrcode {
+  padding: 1em;
+}
 body .submitted .top .reservation-code {
   display: flex;
   align-items: center;
@@ -52,4 +70,20 @@ body .submitted .top .reservation-code .svg-wrapper {
 body .submitted .top .reservation-code .svg-wrapper img {
   max-height: 100%;
   max-width: 100%;
+}
+body .submitted .bottom {
+  display: flex;
+  justify-content: right;
+  border-top: 0.1em solid;
+  border-color: gray;
+}
+body .submitted .bottom .done {
+  padding: 0.2em 0.4em;
+  font-size: 1.2em;
+  background-color: rgb(222, 222, 222);
+  border: 0.1em solid;
+  border-radius: 0.5em;
+  border-color: gray;
+  margin: 0.6em;
+  cursor: pointer;
 }/*# sourceMappingURL=main.css.map */
