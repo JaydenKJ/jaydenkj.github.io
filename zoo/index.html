@@ -7,7 +7,9 @@
     <link rel="stylesheet" href="main.css">
 </head>
 <body>
-    <h1>The Zoo</h1>
+    <div class="navbar">
+
+    </div>
     <form class="form" id="form">
         <div class="form-element">
             <label for="name">Your name</label>
@@ -33,6 +35,17 @@
             <input type="submit" value="submit">
         </div>
     </form>
+    <div class="submitted" id="submitted" style="display: none;">
+        <div class="top">
+            <p class="success">Your reservation has been successfully completed. Your reservation code is:</p>
+            <div class="reservation-code">
+                <p id="reservation_code" onclick="copyToClipboard()">PLACEHOLDER_TEXT</p>
+                <div class="svg-wrapper" onclick="copyToClipboard()">
+                    <img src="copy-svgrepo-com.svg" alt="">
+                </div>
+            </div>
+        </div>
+    </div>
     <script>
 document.getElementById('form').addEventListener('submit', async function (e) {
     e.preventDefault(); // Prevent default form submission
@@ -47,29 +60,39 @@ document.getElementById('form').addEventListener('submit', async function (e) {
 
     try {
         // Send data to Google Apps Script
-        let response = await fetch('https://script.google.com/macros/s/AKfycbwVDsqh3rEamzXMhF22hA8w4jcR7Q0wqCQjHHX9Q_yiaPf95sM56ZoXYS6ICZrKSeY5/exec', {
+        await fetch('https://script.google.com/macros/s/AKfycbwVDsqh3rEamzXMhF22hA8w4jcR7Q0wqCQjHHX9Q_yiaPf95sM56ZoXYS6ICZrKSeY5/exec', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),
+            mode: 'no-cors'
         });
 
-        if (response.ok) {
-            let result = await response.json();
-            if (result.success) {
-                alert(`Form submitted successfully! Your ID is ${result.id}`);
-                document.getElementById('form').reset(); // Clear the form
-            } else {
-                alert('Failed to submit the form: ' + result.message);
-            }
-        } else {
-            console.error('Server response:', response);
-            alert('Error submitting form');
-        }
+        
+        document.getElementById('form').reset(); // Clear the form
+
+        // Update the reservation_code element and show the container
+        var reservationElement = document.getElementById('reservation_code');
+        reservationElement.textContent = uniqueId; // Set the unique ID
+
+        var submittedElement = document.getElementById('submitted');
+        submittedElement.style.display = 'block'; // Show the submitted message
     } catch (error) {
         console.error('Error:', error);
         alert('Error submitting form');
     }
 });
+
+function copyToClipboard() {
+    var reservationCode = document.getElementById('reservation_code').textContent; // Get the text to copy
+    navigator.clipboard.writeText(reservationCode).then(() => {
+        
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert('Failed to copy the reservation code.');
+    });
+}
+
+
 
     </script>
 </body>
