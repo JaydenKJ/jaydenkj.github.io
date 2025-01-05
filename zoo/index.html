@@ -55,10 +55,14 @@
             <div class="done" onclick="done()">done</div>
         </div>
     </div>
+    <span class="loader" style="display: none;" id="loader"></span>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
 document.getElementById('form').addEventListener('submit', async function (e) {
     e.preventDefault(); // Prevent default form submission
+    
+    // Show the loader
+    document.getElementById('loader').style.display = 'block';
 
     // Generate a unique ID
     var uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -94,8 +98,12 @@ document.getElementById('form').addEventListener('submit', async function (e) {
     } catch (error) {
         console.error('Error:', error);
         alert('Error submitting form');
+    } finally {
+        // Hide the loader
+        document.getElementById('loader').style.display = 'none';
     }
 });
+
 
 function copyToClipboard() {
     var reservationCode = document.getElementById('reservation_code').textContent; // Get the text to copy
@@ -139,6 +147,19 @@ function download() {
             alert("QR Code not generated yet!");
         }
     }
+
+function loaderShow() {
+
+    document.getElementById('loader').style.display = 'block';
+
+}
+
+function loaderHide() {
+
+    document.getElementById('loader').style.display = 'none';
+
+}
+
 
 
 
