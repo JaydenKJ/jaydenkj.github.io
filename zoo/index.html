@@ -28,22 +28,28 @@
         <div class="form-element" id="step_2">  
             <label for="date">Date you want to visit</label>
             <input type="date" name="date" required>
+            <div class="back" onclick="previousStep(2)">back</div>
             <div class="next" onclick="nextStep(2)">next</div>
         </div>
         <div class="form-element" id="step_3"> 
-            <label for="people">How many people?</label>
-            <input type="number" name="people" required>
+            <label for="adults">How many people?</label>
+            <input type="number" name="adults" required>
+            <label for="children">Children:</label>
+            <input type="number" name="children" required>
+            <div class="back" onclick="previousStep(3)">back</div>
             <div class="next" onclick="nextStep(3)">next</div>
         </div>
         <div class="form-element" id="step_4">
             <label for="phone-number">Phone number</label>
             <input type="tel" name="phone_number" required>
+            <div class="back" onclick="previousStep(4)">back</div>
             <div class="next" onclick="nextStep(4)">next</div>
         </div>
         <div class="form-element" id="step_5">
             <label for="email">Email</label>
             <input type="email" name="email" required>
             <input type="submit" value="submit">
+            <div class="back" onclick="previousStep(5)">back</div>
         </div>
             
     </form>
@@ -80,13 +86,16 @@
     <script>
 
 function nextStep(currentStep) {
-    const currentElement = document.getElementById(`step_${currentStep}`); // Match the underscore in the ID
-    const input = currentElement.querySelector("input");
+    const currentElement = document.getElementById(`step_${currentStep}`);
+    const inputs = currentElement.querySelectorAll("input[required]");
 
-    // Check if input is valid before proceeding
-    if (!input.checkValidity()) {
-        alert("Please fill out the required field before proceeding.");
-        return;
+    // Check if all required inputs are valid
+    for (let input of inputs) {
+        if (!input.checkValidity()) {
+            alert("Please fill out all required fields before proceeding.");
+            input.focus(); // Focus on the first invalid input
+            return;
+        }
     }
 
     // Hide the current step and show the next step
@@ -94,6 +103,17 @@ function nextStep(currentStep) {
     const nextElement = document.getElementById(`step_${currentStep + 1}`);
     if (nextElement) {
         nextElement.style.display = "block";
+    }
+}
+
+function previousStep(currentStep) {
+    const currentElement = document.getElementById(`step_${currentStep}`);
+    const previousElement = document.getElementById(`step_${currentStep - 1}`);
+
+    // Hide the current step and show the previous step
+    if (previousElement) {
+        currentElement.style.display = "none";
+        previousElement.style.display = "block";
     }
 }
 
@@ -115,7 +135,7 @@ document.getElementById('form').addEventListener('submit', async function (e) {
 
     try {
         // Send data to Google Apps Script
-        await fetch('https://script.google.com/macros/s/AKfycbwVDsqh3rEamzXMhF22hA8w4jcR7Q0wqCQjHHX9Q_yiaPf95sM56ZoXYS6ICZrKSeY5/exec', {
+        await fetch('https://script.google.com/macros/s/AKfycbygR1hCO06u9o8KC9YKX_X9fx9eMU4QiPR_VM9cNyLkFFAAa43FMSWSO68BX4MhLOv6/exec', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data),

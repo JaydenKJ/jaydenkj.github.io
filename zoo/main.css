@@ -15,6 +15,9 @@ body form .form-element {
 body form .form-element .next {
   cursor: pointer;
 }
+body form .form-element .back {
+  cursor: pointer;
+}
 body form .form-element.active {
   display: block;
 }
