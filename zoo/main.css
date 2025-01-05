@@ -8,9 +8,15 @@ body form {
   align-items: center;
 }
 body form .form-element {
-  display: block;
+  display: none;
   margin: 0.5em;
   text-align: right;
+}
+body form .form-element .next {
+  cursor: pointer;
+}
+body form .form-element.active {
+  display: block;
 }
 body .submitted {
   position: absolute;

@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="main.css">
+    <style>
+        .form-element {
+            display: none;
+        }
+        .form-element.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <div class="navbar">
@@ -12,29 +20,32 @@
         <h4>Hey i dont know how you want this designed so if you wanna share your other design thats gonna go to this you can</h4>
     </div>
     <form class="form" id="form">
-        <div class="form-element">
+        <div class="form-element" id=step_1 style="display: block;">
             <label for="name">Your name</label>
-            <input type="text" name="name">
+            <input type="text" name="name" required>
+            <div class="next" onclick="nextStep(1)">next</div>
         </div>
-        <div class="form-element">  
+        <div class="form-element" id="step_2">  
             <label for="date">Date you want to visit</label>
             <input type="date" name="date" required>
+            <div class="next" onclick="nextStep(2)">next</div>
         </div>
-        <div class="form-element"> 
+        <div class="form-element" id="step_3"> 
             <label for="people">How many people?</label>
             <input type="number" name="people" required>
+            <div class="next" onclick="nextStep(3)">next</div>
         </div>
-        <div class="form-element">
+        <div class="form-element" id="step_4">
             <label for="phone-number">Phone number</label>
             <input type="tel" name="phone_number" required>
+            <div class="next" onclick="nextStep(4)">next</div>
         </div>
-        <div class="form-element">
+        <div class="form-element" id="step_5">
             <label for="email">Email</label>
             <input type="email" name="email" required>
-        </div>
-        <div class="form-element">
             <input type="submit" value="submit">
         </div>
+            
     </form>
     <div class="submitted" id="submitted" style="display: none;">
         <div class="top">
@@ -52,12 +63,42 @@
         </div>
         <div class="bottom">
             <div class="download" onclick="download()">Save QR code</div>
-            <div class="done" onclick="done()">done</div>
+            <div class="done" onclick="done(); goToStepOne()">Done</div>
         </div>
     </div>
     <span class="loader" style="display: none;" id="loader"></span>
+
+
+
+
+
+
+
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
+
+function nextStep(currentStep) {
+    const currentElement = document.getElementById(`step_${currentStep}`); // Match the underscore in the ID
+    const input = currentElement.querySelector("input");
+
+    // Check if input is valid before proceeding
+    if (!input.checkValidity()) {
+        alert("Please fill out the required field before proceeding.");
+        return;
+    }
+
+    // Hide the current step and show the next step
+    currentElement.style.display = "none";
+    const nextElement = document.getElementById(`step_${currentStep + 1}`);
+    if (nextElement) {
+        nextElement.style.display = "block";
+    }
+}
+
+
+
 document.getElementById('form').addEventListener('submit', async function (e) {
     e.preventDefault(); // Prevent default form submission
     
@@ -148,17 +189,21 @@ function download() {
         }
     }
 
-function loaderShow() {
 
-    document.getElementById('loader').style.display = 'block';
 
+
+function goToStepOne() {
+    // Hide all steps
+    const allSteps = document.querySelectorAll(".form-element");
+    allSteps.forEach(step => step.style.display = "none");
+
+    // Show the first step
+    const firstStep = document.getElementById("step_1");
+    if (firstStep) {
+        firstStep.style.display = "block";
+    }
 }
 
-function loaderHide() {
-
-    document.getElementById('loader').style.display = 'none';
-
-}
 
 
 
