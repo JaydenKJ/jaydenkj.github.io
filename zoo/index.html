@@ -16,40 +16,57 @@
 </head>
 <body>
     <div class="navbar">
-        <h1>Zoo</h1>
-        <h4>Hey i dont know how you want this designed so if you wanna share your other design thats gonna go to this you can</h4>
+        <h1>The Zoo</h1>
+        <a href="https://the-zoo.my.canva.site">website home</a>
+    </div>
+    <div class="info">
+        <h2>Enter your info to get a reservation at the zoo.</h2>
     </div>
     <form class="form" id="form">
         <div class="form-element" id=step_1 style="display: block;">
             <label for="name">Your name</label>
             <input type="text" name="name" required>
-            <div class="next" onclick="nextStep(1)">next</div>
+            <div class="form-nav">
+                <div class="back" style="visibility: hidden;">back</div>
+                <div class="next" onclick="nextStep(1)">next</div>
+            </div>        
         </div>
         <div class="form-element" id="step_2">  
             <label for="date">Date you want to visit</label>
             <input type="date" name="date" required>
-            <div class="back" onclick="previousStep(2)">back</div>
-            <div class="next" onclick="nextStep(2)">next</div>
+            <div class="form-nav">
+                <div class="back" onclick="previousStep(2)">back</div>
+                <div class="next" onclick="nextStep(2)">next</div>
+            </div>        
         </div>
         <div class="form-element" id="step_3"> 
             <label for="adults">Adults:</label>
             <input type="number" name="adults" required>
-            <label for="children">Children:</label>
+            <label for="children" class="children">Children:</label>
             <input type="number" name="children" required>
-            <div class="back" onclick="previousStep(3)">back</div>
-            <div class="next" onclick="nextStep(3)">next</div>
+            <div class="form-nav">
+                <div class="back" onclick="previousStep(3)">back</div>
+                <div class="next" onclick="nextStep(3)">next</div>
+            </div>
         </div>
         <div class="form-element" id="step_4">
             <label for="phone-number">Phone number</label>
             <input type="tel" name="phone_number" required>
-            <div class="back" onclick="previousStep(4)">back</div>
-            <div class="next" onclick="nextStep(4)">next</div>
+            <div class="form-nav">
+                <div class="back" onclick="previousStep(4)">back</div>
+                <div class="next" onclick="nextStep(4)">next</div>
+            </div>    
         </div>
         <div class="form-element" id="step_5">
             <label for="email">Email</label>
             <input type="email" name="email" required>
-            <input type="submit" value="submit">
-            <div class="back" onclick="previousStep(5)">back</div>
+            <div class="form-nav">
+                <div class="back" onclick="previousStep(5)">back</div>
+                <input type="submit" value="submit" class="submit" id="submit" style="display: block;">
+                <div class="loader-container" id="loader" style="display: none;">
+                    <span class="loader"></span>
+                </div>
+            </div>    
         </div>
             
     </form>
@@ -72,7 +89,7 @@
             <div class="done" onclick="done(); goToStepOne()">Done</div>
         </div>
     </div>
-    <span class="loader" style="display: none;" id="loader"></span>
+    
 
 
 
@@ -123,7 +140,8 @@ document.getElementById('form').addEventListener('submit', async function (e) {
     e.preventDefault(); // Prevent default form submission
     
     // Show the loader
-    document.getElementById('loader').style.display = 'block';
+    document.getElementById('submit').style.display = 'none';
+    document.getElementById('loader').style.display = 'flex';
 
     // Generate a unique ID
     var uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
@@ -162,6 +180,7 @@ document.getElementById('form').addEventListener('submit', async function (e) {
     } finally {
         // Hide the loader
         document.getElementById('loader').style.display = 'none';
+        document.getElementById('submit').style.display = 'block';
     }
 });
 
