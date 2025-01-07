@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Steps Calculator</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <div class="navbar">
+        <div class="title">Step Calculator</div>
+    </div>
+    <div class="main">
+        <div class="info-top">
+            <p>
+                Retrieve current steps:<span class="code">M92</span>
+            </p>
+            <p>
+                Send new steps:<span class="code">M92 'axis''new_steps'</span>
+            </p>
+            <p>
+                Save steps to printer:<span class="code">M500</span>
+            </p>
+        </div>
+        <form class="calculator" id="stepsForm">
+            <div class="input-wrapper">
+                <label for="current_steps">Current steps:</label>
+                <input type="number" name="current_steps" id="current_steps" required>
+            </div>
+            <div class="input-wrapper">
+                <label for="desired_length">Desired length:</label>
+                <input type="number" name="desired_length" id="desired_length" required>
+            </div>
+            <div class="input-wrapper">
+                <label for="actual_length">Actual length:</label>
+                <input type="number" name="actual_length" id="actual_length">
+            </div>
+            <button type="submit">Calculate</button>
+        </form>
+        <div class="output" id="output">
+
+        </div>
+    </div>
+    <script>
+        function calculateNewSteps(currentSteps, desiredLength, actualLength) {
+      // Calculate new steps using the formula: (currentSteps * desiredLength) / actualLength
+      return (currentSteps * desiredLength) / actualLength;
+    }
+
+    // Form submission handler
+    const form = document.getElementById("stepsForm");
+    form.addEventListener("submit", (event) => {
+      event.preventDefault(); // Prevent page reload
+
+      // Get input values
+      const currentSteps = parseFloat(document.getElementById("current_steps").value);
+      const desiredLength = parseFloat(document.getElementById("desired_length").value);
+      const actualLength = parseFloat(document.getElementById("actual_length").value);
+
+      // Validate inputs
+      if (isNaN(currentSteps) || isNaN(desiredLength) || isNaN(actualLength) || actualLength === 0) {
+        document.getElementById("output").textContent = "Please provide valid inputs.";
+        return;
+      }
+
+      // Calculate new steps
+      const newSteps = calculateNewSteps(currentSteps, desiredLength, actualLength);
+
+      // Display the result
+      document.getElementById("output").textContent = `${newSteps.toFixed(2)}`;
+    });
+    </script>
+</body>
+</html>
