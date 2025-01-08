@@ -41,6 +41,63 @@
 
         </div>
     </div>
+    <p>Open this up in google chrome to use this gcode sender. Connect to your printer by finding it in the list when you hit connect.</p>
+    <button id="connect">Connect</button>
+    <input id="gcodeInput" placeholder="Enter G-code" />
+    <button id="send">Send</button>
+    <textarea name="" id="output" style="display: block;"></textarea>
+
+    <script>
+        let device, writer;
+
+        document.getElementById("connect").addEventListener("click", async () => {
+            try {
+                device = await navigator.serial.requestPort();
+                await device.open({ baudRate: 115200 });
+
+                if (device.writable) {
+                    const encoder = new TextEncoder();
+                    writer = device.writable.getWriter();
+                }
+
+                if (device.readable) {
+                    const decoder = new TextDecoderStream();
+                    device.readable.pipeTo(decoder.writable);
+                    const reader = decoder.readable.getReader();
+
+                    (async () => {
+                        try {
+                            while (true) {
+                                const { value, done } = await reader.read();
+                                if (done) break;
+                                document.getElementById("output").textContent += value;
+                            }
+                        } catch (error) {
+                            console.error("Error reading:", error);
+                        }
+                    })();
+                }
+
+                console.log("Connection opened:", device);
+            } catch (error) {
+                console.log("Error connecting:", error);
+            }
+        });
+
+        document.getElementById("send").addEventListener("click", async () => {
+            const gcode = document.getElementById("gcodeInput").value.trim();
+            if (!gcode || !writer) {
+                console.log("Invalid command or no connection.");
+                return;
+            }
+            try {
+                await writer.write(new TextEncoder().encode(gcode + "\n"));
+                console.log("Command sent:", gcode);
+            } catch (error) {
+                console.log("Error sending command:", error);
+            }
+        });
+    </script>
     <script>
         function calculateNewSteps(currentSteps, desiredLength, actualLength) {
       // Calculate new steps using the formula: (currentSteps * desiredLength) / actualLength
