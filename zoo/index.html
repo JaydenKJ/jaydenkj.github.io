@@ -3,250 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Zoo - tickets</title>
-    <link rel="stylesheet" href="main.css">
+    <title>2021 HTML and CSS Crash Course</title>
+    <link rel="stylesheet" href="css/main.css">
+
     <style>
-        .form-element {
-            display: none;
-        }
-        .form-element.active {
-            display: block;
+        .icon {
+            width: 1em;
+            height: 1em;
+          
         }
     </style>
 </head>
 <body>
-    <div class="navbar">
-        <h1>The Zoo</h1>
-        <a href="https://the-zoo.my.canva.site">website home</a>
-    </div>
-    <div class="info">
-        <h2>Enter your info to get a reservation at the zoo.</h2>
-    </div>
-    <form class="form" id="form">
-        <div class="form-element" id=step_1 style="display: block;">
-            <label for="name">Your name</label>
-            <input type="text" name="name" required>
-            <div class="form-nav">
-                <div class="back" style="visibility: hidden;">back</div>
-                <div class="next" onclick="nextStep(1)">next</div>
-            </div>        
-        </div>
-        <div class="form-element" id="step_2">  
-            <label for="date">Date you want to visit</label>
-            <input type="date" name="date" required>
-            <div class="form-nav">
-                <div class="back" onclick="previousStep(2)">back</div>
-                <div class="next" onclick="nextStep(2)">next</div>
-            </div>        
-        </div>
-        <div class="form-element" id="step_3"> 
-            <label for="adults">Adults:</label>
-            <input type="number" name="adults" required>
-            <label for="children" class="children">Children:</label>
-            <input type="number" name="children" required>
-            <div class="form-nav">
-                <div class="back" onclick="previousStep(3)">back</div>
-                <div class="next" onclick="nextStep(3)">next</div>
-            </div>
-        </div>
-        <div class="form-element" id="step_4">
-            <label for="phone-number">Phone number</label>
-            <input type="tel" name="phone_number" required>
-            <div class="form-nav">
-                <div class="back" onclick="previousStep(4)">back</div>
-                <div class="next" onclick="nextStep(4)">next</div>
-            </div>    
-        </div>
-        <div class="form-element" id="step_5">
-            <label for="email">Email</label>
-            <input type="email" name="email" required>
-            <div class="form-nav">
-                <div class="back" onclick="previousStep(5)">back</div>
-                <input type="submit" value="submit" class="submit" id="submit" style="display: block;">
-                <div class="loader-container" id="loader" style="display: none;">
-                    <span class="loader"></span>
-                </div>
-            </div>    
-        </div>
-            
-    </form>
-    <div class="submitted" id="submitted" style="display: none;">
-        <div class="top">
-            <p class="success"><span>Success!</span>Your reservation has been completed. Please download this QR code using the download button beneath.</p>
-            <div class="reservation-code">
-                <p id="reservation_code" onclick="copyToClipboard()">PLACEHOLDER_TEXT</p>
-                <div class="svg-wrapper" onclick="copyToClipboard()">
-                    <img src="copy-svgrepo-com.svg" alt="">
-                </div>
-            </div>
-            <p class="copied" id="copied" style="display: none;">copied to clipboard</p>
-            <div class="qrcode-wrapper">
-                <div class="qrcode" id="qr_code">QR code generating...</div>
-            </div>    
-        </div>
-        <div class="bottom">
-            <div class="download" onclick="download()">Save QR code</div>
-            <div class="done" onclick="done(); goToStepOne()">Done</div>
+    <div Class="navbar">
+        <div class="container">
+            <a class="logo" href="#">Remember<span>That</span></a>
+
+            <img id="mobile-cta" class="mobile-menu icon" src="hamburger_menu.svg" alt="hamburger_menu">
+
+            <nav>
+                <img src="x.svg" id="mobile-exit" class="mobile-menu-exit icon" alt="menu exit">
+
+                <ul class="primary-nav">
+                    <li class="current"><a href="#">Home</a></li>
+                    <li><a href="features.html">Features</a></li>
+                    <li><a href="#">Pricing</a></li>
+                </ul>
+
+                <ul class="secondary-nav">
+                    <li><a href="#">Contact</a></li>
+                    <li class="go-premium-cta"><a href="#">Go Premium</a></li>
+                </ul>
+            </nav>
+
         </div>
     </div>
-    
 
+<section class="hero">
+<div class="container">
+    <div class="left-col">
+        <p class="subhead">It's Nitty &amp; Gritty</p>
+        <h1>A task app that doesn't stink!</h1>
 
+        <div class="hero-cta"></div>
+        <a href="#" class="primary-cta">Try for free</a>
+        <a href="#" class="watch-video-cta">
+            <img src="video.svg" alt="video" class="icon">Watch a video
+        </a>
+    </div>
+    <img src="book.svg" class="hero-img" alt="Pretty cool book">
+</div>
+</section>
 
+<section class="features-section">
+    <div class="container">
+        <ul class="features-list">
+            <li>Unlimited Tasks</li>
+            <li>SMS Task Reminders</li>
+            <li>Confetti Explosions upon Taks Completions</li>
+            <li>Social Media Announcements</li>
+            <li>Real Time Collaboration</li>
+            <li>Other awesome features</li>
+        </ul>
 
+        <img src="plants.jpg" alt="Random plants">
+    </div>
+</section>
 
+<section class="testomonials-section">
+    <div class="container">
+        <ul>
+            <li>
+                <img src="person.jpg" alt="Person">
+                <blockquote>"Blah blah blah a whole bunch of random words without a purpose"</blockquote>
+                <cite>- John Doe</cite>
+            </li>
+            <li>
+                <img src="person.jpg" alt="Person">
+                <blockquote>"Blah blah blah a whole bunch of random words without a purpose"</blockquote>
+                <cite>- John Doe</cite>
+            </li>
+            <li>
+                <img src="person.jpg" alt="Person">
+                <blockquote>"Blah blah blah a whole bunch of random words without a purpose"</blockquote>
+                <cite>- John Doe</cite>
+            </li>
+        </ul>
+    </div>
+</section>
 
+<section class="contact-section">
+    <div class="container">
+        <div class="contact-left">
+            <h2>Contact</h2>
+            <form action="">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name">
 
+                <label for="message">Message</label>
+                <textarea name="message" id="message" cols="30" rows="10"></textarea>
 
+                <input type="submit" class="send-message-cta" value="Send message">
+            </form>
+        </div>
+        <div class="contact-right">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d50720.082387500246!2d-120.73028699999999!3d37.3897105!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80910d7851e3b0c7%3A0xf5aa6f9ccabfb593!2sLivingston%2C%20CA%2095334!5e0!3m2!1sen!2sus!4v1719547698872!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+    </div>
+</section>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
+<script>
+    const mobileBtn = document.getElementById('mobile-cta')
+        nav = document.querySelector('nav')
+        mobileBtnExit = document.getElementById('mobile-exit');
 
-function nextStep(currentStep) {
-    const currentElement = document.getElementById(`step_${currentStep}`);
-    const inputs = currentElement.querySelectorAll("input[required]");
+    mobileBtn.addEventListener('click', () => {
+        nav.classList.add('menu-btn');
+    })
 
-    // Check if all required inputs are valid
-    for (let input of inputs) {
-        if (!input.checkValidity()) {
-            alert("Please fill out all required fields before proceeding.");
-            input.focus(); // Focus on the first invalid input
-            return;
-        }
-    }
+    mobileBtnExit.addEventListener('click', () => {
+        nav.classList.remove('menu-btn');
+    })
+</script>
 
-    // Hide the current step and show the next step
-    currentElement.style.display = "none";
-    const nextElement = document.getElementById(`step_${currentStep + 1}`);
-    if (nextElement) {
-        nextElement.style.display = "block";
-    }
-}
-
-function previousStep(currentStep) {
-    const currentElement = document.getElementById(`step_${currentStep}`);
-    const previousElement = document.getElementById(`step_${currentStep - 1}`);
-
-    // Hide the current step and show the previous step
-    if (previousElement) {
-        currentElement.style.display = "none";
-        previousElement.style.display = "block";
-    }
-}
-
-
-
-document.getElementById('form').addEventListener('submit', async function (e) {
-    e.preventDefault(); // Prevent default form submission
-    
-    // Show the loader
-    document.getElementById('submit').style.display = 'none';
-    document.getElementById('loader').style.display = 'flex';
-
-    // Generate a unique ID
-    var uniqueId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-
-    // Collect form data
-    var formData = new FormData(e.target);
-    var data = { id: uniqueId }; // Start with the generated ID
-    formData.forEach((value, key) => data[key] = value);
-
-    try {
-        // Send data to Google Apps Script
-        await fetch('https://script.google.com/macros/s/AKfycbygR1hCO06u9o8KC9YKX_X9fx9eMU4QiPR_VM9cNyLkFFAAa43FMSWSO68BX4MhLOv6/exec', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data),
-            mode: 'no-cors'
-        });
-
-        // Notify the user of the ID and display it
-        document.getElementById('form').reset(); // Clear the form
-
-        // Update the reservation_code element and show the container
-        var reservationElement = document.getElementById('reservation_code');
-        reservationElement.textContent = uniqueId; // Set the unique ID
-
-        var submittedElement = document.getElementById('submitted');
-        submittedElement.style.display = 'block'; // Show the submitted message
-
-        // Generate QR code
-        var qrCodeContainer = document.getElementById('qr_code');
-        qrCodeContainer.innerHTML = ''; // Clear any existing QR code
-        new QRCode(qrCodeContainer, uniqueId); // Generate a new QR code
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error submitting form');
-    } finally {
-        // Hide the loader
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('submit').style.display = 'block';
-    }
-});
-
-
-function copyToClipboard() {
-    var reservationCode = document.getElementById('reservation_code').textContent; // Get the text to copy
-    navigator.clipboard.writeText(reservationCode).then(() => {
-        
-    }).catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy the reservation code.');
-    });
-    document.getElementById('copied').style.display = 'block';
-}
-
-function done() {
-
-    document.getElementById('submitted').style.display = 'none';
-
-}
-
-function download() {
-        const qrDiv = document.getElementById("qr_code");
-        const qrImage = qrDiv.querySelector("img"); // Check for generated image
-        const qrCanvas = qrDiv.querySelector("canvas"); // Check for generated canvas
-
-        if (qrImage && qrImage.src) {
-            // If an <img> is present, download it
-            const link = document.createElement("a");
-            link.href = qrImage.src;
-            link.download = "qr-code.png";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } else if (qrCanvas) {
-            // If a <canvas> is present, convert to image and download
-            const link = document.createElement("a");
-            link.href = qrCanvas.toDataURL("image/png");
-            link.download = "qr-code.png";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } else {
-            alert("QR Code not generated yet!");
-        }
-    }
-
-
-
-
-function goToStepOne() {
-    // Hide all steps
-    const allSteps = document.querySelectorAll(".form-element");
-    allSteps.forEach(step => step.style.display = "none");
-
-    // Show the first step
-    const firstStep = document.getElementById("step_1");
-    if (firstStep) {
-        firstStep.style.display = "block";
-    }
-}
-
-
-
-
-
-    </script>
 </body>
 </html>
