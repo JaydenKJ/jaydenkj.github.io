@@ -24,9 +24,9 @@
         <h2>Enter your info to get a reservation at the zoo.</h2>
     </div>
     <form class="form" id="form">
-        <div class="form-element" id=step_1 style="display: block;">
+        <div class="form-element" id=step_1 style="display: flex;">
             <label for="name">Your name</label>
-            <input type="text" name="name" required>
+            <input type="text" name="name" required class="input">
             <div class="form-nav">
                 <div class="back" style="visibility: hidden;">back</div>
                 <div class="next" onclick="nextStep(1)">next</div>
@@ -34,7 +34,7 @@
         </div>
         <div class="form-element" id="step_2">  
             <label for="date">Date you want to visit</label>
-            <input type="date" name="date" required>
+            <input type="date" name="date" class="input" required>
             <div class="form-nav">
                 <div class="back" onclick="previousStep(2)">back</div>
                 <div class="next" onclick="nextStep(2)">next</div>
@@ -42,9 +42,9 @@
         </div>
         <div class="form-element" id="step_3"> 
             <label for="adults">Adults:</label>
-            <input type="number" name="adults" required>
+            <input type="number" name="adults" class="input" required>
             <label for="children" class="children">Children:</label>
-            <input type="number" name="children" required>
+            <input type="number" name="children" class="input" required>
             <div class="form-nav">
                 <div class="back" onclick="previousStep(3)">back</div>
                 <div class="next" onclick="nextStep(3)">next</div>
@@ -52,7 +52,7 @@
         </div>
         <div class="form-element" id="step_4">
             <label for="phone-number">Phone number</label>
-            <input type="tel" name="phone_number" required>
+            <input type="tel" name="phone_number" class="input" required>
             <div class="form-nav">
                 <div class="back" onclick="previousStep(4)">back</div>
                 <div class="next" onclick="nextStep(4)">next</div>
@@ -60,10 +60,10 @@
         </div>
         <div class="form-element" id="step_5">
             <label for="email">Email</label>
-            <input type="email" name="email" required>
+            <input type="email" name="email" class="input" required>
             <div class="form-nav">
                 <div class="back" onclick="previousStep(5)">back</div>
-                <input type="submit" value="submit" class="submit" id="submit" style="display: block;">
+                <input class="next" id="submit" value="submit" type="submit"></input>
                 <div class="loader-container" id="loader" style="display: none;">
                     <span class="loader"></span>
                 </div>
@@ -120,7 +120,7 @@ function nextStep(currentStep) {
     currentElement.style.display = "none";
     const nextElement = document.getElementById(`step_${currentStep + 1}`);
     if (nextElement) {
-        nextElement.style.display = "block";
+        nextElement.style.display = "flex";
     }
 }
 
@@ -131,7 +131,7 @@ function previousStep(currentStep) {
     // Hide the current step and show the previous step
     if (previousElement) {
         currentElement.style.display = "none";
-        previousElement.style.display = "block";
+        previousElement.style.display = "flex";
     }
 }
 
@@ -139,6 +139,7 @@ function previousStep(currentStep) {
 
 document.getElementById('form').addEventListener('submit', async function (e) {
             e.preventDefault(); // Prevent default form submission
+
 
             // Show the loader
             document.getElementById('submit').style.display = 'none';

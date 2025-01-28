@@ -40,27 +40,25 @@ body form .form-element {
   display: none;
   margin: 0.5em;
   text-align: center;
+  width: 15em;
+  flex-direction: column;
 }
-body form .form-element .submit {
-  margin: 0;
-  background-color: rgb(222, 222, 222);
-  font-size: 1.2em;
-  padding: 0.3em 0.8em;
-  user-select: none;
-  border-radius: 0.5em;
-  border: 0.1em solid;
-  border-color: grey;
-  cursor: pointer;
-}
-body form .form-element input {
+body form .form-element .input {
   display: block;
   font-size: 1.2em;
-  margin-top: 0.2em;
+  margin-top: 0.4em;
   border-radius: 0.5em;
   padding: 0.1em;
   margin-bottom: 1em;
-  border: 0.1em solid;
+  border: none;
+  border-bottom: 0.1em solid;
   border-color: grey;
+  box-shadow: 0.08em 0.08em 0.5em rgb(202, 202, 202);
+  min-width: 100%;
+}
+body form .form-element .input:focus {
+  background-color: rgb(245, 245, 245);
+  outline: none;
 }
 body form .form-element label {
   font-size: 1.2em;
