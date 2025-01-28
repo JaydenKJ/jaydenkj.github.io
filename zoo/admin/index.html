@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Lookup</title>
+</head>
+<body>
+    <h1>Lookup Reservation</h1>
+    <form id="lookup-form">
+        <label for="reservation-id">Reservation ID:</label>
+        <input type="text" id="reservation-id" name="id" required>
+        <button type="submit">Find Reservation</button>
+    </form>
+
+    <h2>Reservation Details</h2>
+    <pre id="reservation-details">No data yet...</pre>
+
+    <script>
+        document.getElementById('lookup-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const reservationId = document.getElementById('reservation-id').value;
+            try {
+                const response = await fetch(`https://pi.tail6e5d07.ts.net/get-reservation/${reservationId}`);
+                if (!response.ok) throw new Error('Reservation not found');
+                
+                const data = await response.json();
+                document.getElementById('reservation-details').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('reservation-details').textContent = error.message;
+            }
+        });
+    </script>
+</body>
+</html>
