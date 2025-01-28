@@ -15,6 +15,7 @@ body .navbar {
   top: 0;
   width: 100%;
   box-sizing: border-box;
+  background-color: white;
 }
 body .navbar h1 {
   user-select: none;
@@ -222,4 +223,43 @@ body .submitted .bottom .done, body .submitted .bottom .download {
   align-items: center;
   max-height: 2em;
   max-width: 2em;
+}
+
+/*admin page*/
+body .lookup {
+  margin-top: 6em;
+  margin-left: 1em;
+}
+body .lookup input {
+  background-color: white;
+  border: none;
+  border-bottom: 0.1em solid;
+  border-radius: 0.5em;
+  box-shadow: 0.08em 0.08em 0.5em rgb(202, 202, 202);
+}
+body .lookup input:focus {
+  outline: none;
+  background-color: rgb(245, 245, 245);
+}
+body .output {
+  margin-left: 1em;
+}
+body .output span {
+  background-color: rgb(207, 207, 207);
+  padding: 0.2em 0.5em;
+  border-radius: 0.5em;
+  margin-left: 0.2em;
+}
+@media print {
+  body .navbar {
+    box-shadow: none;
+    border-bottom: 0.1em solid;
+    display: block;
+  }
+  body .lookup {
+    display: none;
+  }
+  body .output {
+    margin-top: 6em;
+  }
 }/*# sourceMappingURL=main.css.map */
