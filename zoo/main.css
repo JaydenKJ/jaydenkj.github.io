@@ -53,8 +53,9 @@ body form .form-element .input {
   margin-bottom: 1em;
   border: none;
   border-bottom: 0.1em solid;
+  border-right: 0.1em solid;
   border-color: grey;
-  box-shadow: 0.08em 0.08em 0.5em rgb(202, 202, 202);
+  box-shadow: 0.2em 0.2em 1em rgb(202, 202, 202);
   min-width: 100%;
 }
 body form .form-element .input:focus {
