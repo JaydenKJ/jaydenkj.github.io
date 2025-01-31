@@ -23,7 +23,9 @@
             <p>Children: <span id="children"></span></p>
             <p>Phone number: <span id="phone-number"></span></p>
             <p>Email: <span id="email"></span></p>
+            <p>Reservation status: <span id="reservation-status"></span></p>
         </div>
+        <button id="check-in-btn" disabled>Check In</button>
 
     </div>
     <script>
@@ -50,12 +52,38 @@ async function fetchReservation() {
         document.getElementById('children').textContent = data.children || 'N/A';
         document.getElementById('phone-number').textContent = data.phone_number || 'N/A';
         document.getElementById('email').textContent = data.email || 'N/A';
+        document.getElementById('reservation-status').textContent = data.status || 'N/A';
+
+        // Enable check-in button
+        document.getElementById('check-in-btn').disabled = false;
     } catch (error) {
         alert(error.message);
     }
 
     document.getElementById('lookup').focus();
 }
+
+// Function to check in the guest
+async function checkInReservation() {
+    const reservationId = document.getElementById('lookup').value;
+
+    try {
+        const response = await fetch(`https://pi.tail6e5d07.ts.net/update-reservation/${reservationId}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Checked In' })
+        });
+
+        if (!response.ok) throw new Error('Failed to check in');
+
+        document.getElementById('reservation-status').textContent = 'Checked In';
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+document.getElementById('check-in-btn').addEventListener('click', checkInReservation);
+
 
     </script>
 </body>
