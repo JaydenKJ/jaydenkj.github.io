@@ -1,0 +1,469 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+:root {
+
+    --gradient-start: #0097b2;
+    --gradient-end: #7ed957;
+    --button-color: #319e7a;
+
+}
+
+body {
+
+    margin: 0;
+    padding: 0;
+    background-color: #38b6ff;
+    font-family: 'Montserrat';
+
+}
+
+.navbar-wrapper {
+
+    position: fixed;
+    width: 100%;
+    top: 0;
+
+    .navbar {
+
+        background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+        border-radius: 1em;
+        display: flex;
+        justify-content: center;
+        margin: .5em;
+        padding: .5em .5em;
+        box-shadow: .2em .2em var(--button-color);
+
+        .logo {
+
+            text-decoration: none;
+            color: black;
+            font-size: 1.7em;
+            font-weight: 700;
+            
+
+        }
+
+        .no-fat {
+
+            display: none;
+
+        }
+
+    }
+
+}    
+
+.hero {
+
+    margin: .5em;
+    display: flex;
+    flex-direction: column;
+    margin-top: 4em;
+
+    .hero-text {
+
+        padding: .5em;
+        background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+        border-radius: 1em;
+        font-weight: 500;
+        text-align: center;
+        font-size: 1.2em;
+
+    }
+
+    .buttons {
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        a {
+
+            text-decoration: none;
+            color: black;
+            padding: .5em 1em;
+            background-color: #319e7a;
+            margin: .5em 0;
+            border-radius: 2em;
+            font-weight: 700;
+            width: fit-content;
+            font-size: 1.5em;
+
+
+        }
+
+    }    
+
+    .img {
+
+        text-align: center;
+        margin-top: 2em;
+
+        .soup-n-plant {
+
+            height: 15em;
+            width: 15em;
+
+        }
+
+        .ingredient {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 2em 0;
+            flex-wrap: wrap;
+            margin-top: -2em;
+    
+    
+            .ingredient-p {
+    
+                padding: .5em 1em;
+                background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+                border-radius: 1em;
+                font-size: 1.5em;
+                text-align: center;
+                    
+    
+            }
+    
+            a {
+    
+                text-decoration: none;
+                color: black;
+                font-weight: 700;
+                padding: .5em 1em;
+                background-color: var(--button-color);
+                border-radius: 1em;
+                font-size: 1.5em;
+    
+            }
+    
+        }    
+
+    }
+
+    
+
+}
+
+.title-wrapper {
+
+    text-align: center;
+
+    .title {
+
+        margin: .5em;
+        margin-top: 4em;
+        font-size: 1.5em;
+        padding: .5em 1em;
+        border-radius: 1em;
+        background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+        font-weight: 600;
+        display: inline-block;
+
+    }
+}
+.hero-buy {
+
+    padding: .5em;
+    background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+    border-radius: 1em;
+    font-weight: 500;
+    text-align: center;
+    font-size: 1.2em;
+    margin: .5em;
+    padding-bottom: 1em;
+
+    .left {
+
+        margin-bottom: .5em;
+
+        .title-buy {
+
+            font-size: 1.4em;
+            margin-bottom: 1em;
+            font-weight: 500;
+
+        }
+
+    }
+
+
+    .right {
+
+        display: flex;
+        justify-content: center;
+
+        img {
+
+            height: 20em;
+            border-radius: .5em;
+
+        }
+
+    }
+
+}
+
+.video {
+
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+
+    p {
+
+        font-size: 1.8em;
+        padding: .5em 1em;
+        border-radius: 1em;
+        background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+        font-weight: 700;
+        margin-bottom: -1em;
+        margin-top: 2em;
+        
+    }
+
+    video {
+        margin-top: 4em;
+        width: 20em;
+        margin-bottom: 2em;
+
+
+    }
+
+}
+
+iframe {
+
+    display: none;
+
+}
+
+.purchase {
+
+    .normal {
+
+        padding: .5em;
+        background-image: linear-gradient(to right, var(--gradient-start), var(--gradient-end));
+        margin: .5em;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        border-radius: 1em;
+
+        .title {
+
+            font-size: 1.2em;
+            font-weight: 500;
+
+        }
+
+        .buy-btn {
+
+            font-weight: 500;
+            background-color: var(--button-color);
+            padding: .5em .8em;
+            font-size: 1.2em;
+            border-radius: 1em;
+            margin-top: .5em;
+            cursor: pointer;
+            text-decoration: none;
+            user-select: none;
+            color: black;
+
+
+        }
+
+    }
+
+    .special {
+
+        .title {
+
+            margin-bottom: .2em;
+
+            .tag {
+                display: inline;
+                vertical-align: middle;
+                font-size: .7em;
+                background-color: var(--button-color);
+                padding: .2em .4em;
+                border-radius: 1em;
+
+            }
+
+        }
+
+    }
+}
+
+@media only screen and (min-width: 768px) {
+
+
+    .navbar-wrapper {
+
+        .navbar {
+
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 1.5em;
+
+            .logo {
+
+                font-size: 2em;
+                margin-left: .3em;
+
+            }
+
+            .no-fat {
+
+                display: block;
+                text-decoration: none;
+                color: black;
+                background-color: var(--button-color);
+                padding: .5em;
+                font-weight: 500;
+                border-radius: 1em;
+                margin-right: .3em;
+                font-size: 1.3em;
+
+            }
+
+        }
+    }    
+
+    .hero {
+
+        margin: 1em 3em;
+        display: block;
+        margin-top: 8em;
+
+
+        .hero-text {
+
+            margin: 1em 5em;
+
+        }
+
+        .buttons {
+
+            display: flex;
+            flex-wrap: wrap;
+            text-align: center;
+            margin: 0;
+            flex-direction: row;
+            justify-content: center;
+
+        
+            
+            a {
+
+                margin: 0 .1em;
+                display: block;
+
+            }
+
+        }    
+
+        .img {
+
+            
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 2em;
+            .soup-n-plant {
+
+                height: 20em;
+                width: 20em;
+            }
+            
+            .ingredient {
+
+                
+
+
+                .ingredient-p {
+    
+    
+                    span {
+    
+                        display: block;
+    
+                    }
+    
+    
+    
+                }
+    
+                a {
+    
+                    display: block;
+    
+                }
+    
+            }
+        }
+
+    
+        
+
+
+
+    }
+
+    .video {
+
+        video {
+
+            width: 40em;
+
+        }
+    }
+
+    .hero-buy {
+
+        display: flex;
+        padding-left: 1em;
+        padding-right: 1em;
+        align-items: center;
+
+        .left {
+
+            margin-right: 2em;
+            
+
+        }
+
+        .right {
+
+            img {
+
+                height: 15em;
+
+            }
+
+        }
+
+    }
+
+    .purchase {
+
+        display: flex;
+        flex-direction: row;
+        justify-content:center;
+
+        .normal {
+
+            padding: 1em;
+            font-size: 125%;
+
+        }
+
+    }
+
+}
+
+
