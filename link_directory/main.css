@@ -1,0 +1,234 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap");
+body {
+  background-image: url("background3.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-attachment: fixed;
+  font-family: "Roboto";
+  margin: 1em 3em;
+  padding: 0;
+  margin-top: 2em;
+}
+
+/*this is for the homepage as of now*/
+body .navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+body .navbar-container .title {
+  backdrop-filter: var(--global-blur);
+  width: fit-content;
+  padding: 1em;
+  background-color: var(--background-color);
+  border-radius: 2em;
+  border: .1em solid;
+  border-color: var(--border-color);
+  user-select: none;
+}
+body .navbar-container .right button {
+  border: none;
+  background-color: var(--background-color);
+  backdrop-filter: var(--global-blur);
+  padding: .5em .8em;
+  border-radius: 1.5em;
+  color: var(--text-color);
+  font-size: 1.2em;
+  cursor: pointer;
+  border: .1em solid;
+  border-color: var(--border-color);
+  user-select: none;
+}
+body .navbar-container .right button:hover {
+  background-color: var(--hover-color);
+}
+body .title h2 {
+  margin: 0;
+  font-size: 2em;
+  color: var(--text-color);
+}
+body .other {
+  position: fixed;
+  top: 50%;
+  left: 50%; 
+  transform: translate(-50%, -50%);
+  z-index: 9000;
+  width: 100vw;
+  height: 101vh;
+  background-color: var(--background-color);
+  backdrop-filter: var(--global-blur);
+}
+body .other .easter-egg {
+  position: fixed;
+  top: 0;
+  right: 0;
+  color: rgba(0,0,0,0);
+  background-color: rgba(0,0,0,0);
+  border: none;
+  cursor: pointer;
+  user-select: none;
+}
+body .other .container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10000;
+  padding: 1em;
+  border-radius: 2em;
+  border: .1em solid;
+  border-color: var(--border-color);
+  background-color: var(--other-background); /*set to whatever goes with the picture, rgb(22,22,22) default*/
+}
+body .other .container .title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5em;
+  user-select: none;
+}
+body .other .container .title .svg-container {
+  width: 1em;
+  height: 1em;
+  margin-left: 6em;
+  cursor: pointer;
+}
+body .other .container .title .svg-container svg {
+  max-width: 100%;
+  max-height: 100%;
+}
+body .other .container a, body .other .container .button {
+  display: block;
+  text-decoration: none;
+  margin: 0.1em 0;
+  color: var(--text-color);
+  font-size: 1.2em;
+  user-select: none;
+  cursor: pointer;
+}
+body .other .container .top-button {
+  margin-top: 1em;
+}
+body .containter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 4em;
+}
+body .containter .main {
+  backdrop-filter: var(--global-blur);
+  width: fit-content;
+  background-color: var(--background-color);
+  padding: 1em;
+  border-radius: 2em;
+  margin: 2em 2em;
+  height: fit-content;
+  border: .1em solid;
+  border-color: var(--border-color);
+}
+body .containter .main:hover {
+  background-color: var(--hover-color);
+}
+body .containter .main h2 {
+  margin: 0;
+  margin-bottom: 1em;
+  font-size: 1.5em;
+  color: var(--text-color);
+  user-select: none;
+}
+body .containter .main a {
+  display: block;
+  text-decoration: none;
+  margin: 0.1em 0;
+  color: var(--text-color);
+  font-size: 1.2em;
+  user-select: none;
+}
+ /*this is for the quizlet page*/
+
+ body .web-viewer-hero {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;;
+
+ }
+body .web-viewer-hero .iframe-wrapper {
+  width: 95vw;
+  height: 95vh;
+  backdrop-filter: var(--global-blur);
+  background-color: var(--background-color);
+  border-radius: 2em;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: .1em solid;
+  border-color: var(--border-color);
+}
+body .web-viewer-hero .iframe-wrapper iframe {
+  width: 97%;
+  height: 95%;
+  border-radius: 1em;
+}
+body .web-viewer-navigation {
+  display: flex;
+  justify-content: space-between;
+  margin-left: 2em;
+  margin-right: 2em;
+  margin-top: 1em;
+}
+body .web-viewer-navigation .web-viewer-navigation-left {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  backdrop-filter: var(--global-blur);
+  padding: 0 1em;
+  border-radius: 2em;
+  border: .1em solid;
+  border-color: var(--border-color);
+  font-size: 1.1em;
+}
+body .web-viewer-navigation .web-viewer-navigation-left p {
+  margin-left: .5em;
+}
+body .web-viewer-navigation .web-viewer-navigation-right {
+  display: flex;
+  align-items: center;
+  background-color: var(--background-color);
+  backdrop-filter: var(--global-blur);
+  padding: 0 1em;
+  border-radius: 2em;
+  border: .1em solid;
+  border-color: var(--border-color);
+}
+body .web-viewer-navigation .web-viewer-navigation-right input {
+  background-color: rgba(0,0,0,0);
+  color: var(--text-color);
+  border: .1em solid;
+  border-color: var(--border-color);
+  padding: .2em;
+  border-radius: .5em;
+  font-size: 1.1em;
+  width: 20em;
+}
+body .web-viewer-navigation .web-viewer-navigation-right input:focus {
+  outline: none;
+  background-color:var(--hover-color);
+}
+body .web-viewer-navigation .web-viewer-navigation-right button {
+  margin-left: .5em;
+  font-size: 1.1em;
+  background-color: rgba(0,0,0,0);
+  border: .1em solid;
+  border-color: var(--border-color);
+  border-radius: .5em;
+  color: var(--text-color);
+  padding: .2em;
+}
+body .web-viewer-navigation .web-viewer-navigation-right button:hover {
+  background-color:var(--hover-color);
+}

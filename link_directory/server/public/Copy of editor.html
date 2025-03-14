@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snippet Editor</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    h1 {
+      margin-bottom: 10px;
+    }
+    #editor {
+      width: 100vw;
+      height: 100vh;
+      margin: 0 auto;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+  <!-- Monaco Editor via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs/loader.js"></script>
+</head>
+<body>
+
+  
+  <div id="editor"></div>
+  <br>
+  <button onclick="saveSnippet()">Save Changes</button>
+
+  <script>
+    // Configure Monaco loader
+    require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.39.0/min/vs' }});
+
+    // Initialize Monaco editor
+    require(['vs/editor/editor.main'], function () {
+      // Fetch snippet on page load
+      fetch('https://pi.tail6e5d07.ts.net/10th')
+        .then(response => response.text())
+        .then(html => {
+          const editor = monaco.editor.create(document.getElementById('editor'), {
+            value: html, // Set fetched HTML as initial content
+            language: 'html',
+            theme: 'vs-dark',
+          });
+        })
+        .catch(error => console.error('Error loading snippet:', error));
+
+      // Save the edited snippet
+      window.saveSnippet = function() {
+        const updatedContent = editor.getValue(); // Get the content from Monaco editor
+        
+        fetch('https://pi.tail6e5d07.ts.net/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ content: updatedContent })
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message))
+        .catch(error => console.error('Error saving snippet:', error));
+      };
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Snippet Editor</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    #content {
+      height: 80vh;
+    }
+    .button {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Monaco Editor container -->
+  <div id="content"></div>
+
+  <!-- Button to save the snippet -->
+  <div class="button" onclick="saveSnippet()">Save Snippet</div>
+
+  <!-- Script to load Monaco Editor -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.35.0/min/vs/loader.js"></script>
+  <script>
+    // Load Monaco Editor
+    require.config({ paths: { 'vs': 'https://cdn.jsdelivr.net/npm/monaco-editor@0.35.0/min/vs' } });
+    require(['vs/editor/editor.main'], function() {
+      var editor = monaco.editor.create(document.getElementById('content'), {
+        value: "",
+        language: 'html',
+        theme: 'vs-dark'
+      });
+
+      // Function to load the snippet into the editor
+      function loadSnippet(snippetName) {
+        fetch(`https://pi.tail6e5d07.ts.net/${snippetName}`)
+          .then(response => response.text())
+          .then(html => {
+            editor.setValue(html); // Set the fetched content into the Monaco editor
+          })
+          .catch(error => {
+            console.error('Error fetching snippet:', error);
+            alert('Failed to load snippet.');
+          });
+      }
+
+      // Prompt for the snippet name on page load
+      var snippetName = prompt("Enter the snippet name to edit (e.g., '9th', '10th'):");
+      if (snippetName) {
+        loadSnippet(snippetName); // Load the snippet into the editor
+      } else {
+        alert("No snippet name provided.");
+      }
+
+      // Function to save the snippet
+      window.saveSnippet = function() {
+        var snippetName = prompt("Enter the snippet name (e.g., '9th', '10th'):");
+        if (snippetName) {
+          var snippetContent = editor.getValue(); // Get the content from Monaco editor
+
+          fetch(`https://pi.tail6e5d07.ts.net/${snippetName}/save`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'text/plain',
+            },
+            body: snippetContent
+          })
+          .then(response => {
+            if (response.ok) {
+              alert('Snippet saved successfully!');
+            } else {
+              alert('Failed to save snippet!');
+            }
+          })
+          .catch(error => {
+            console.error('Error saving snippet:', error);
+            alert('Error saving snippet!');
+          });
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

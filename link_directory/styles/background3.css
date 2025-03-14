@@ -1,0 +1,33 @@
+:root {
+
+/*
+    This is for setting the styles
+    of the link directory and web viewer
+*/
+    /*this is the color filter 
+    on all the boxes*/
+  --background-color: rgba(f,f,f, 0.4);
+
+    /*this sets the blur intensity
+    of all the elements that have it*/
+  --global-blur: blur(20px);
+
+    /*this is the color of the border
+    around most of the boxes*/
+  --border-color: rgba(0,0,0, .1);
+
+    /*text color*/
+  --text-color: rgba(22,22,22,1);
+
+    /*some elements change color
+    when you hover on them...
+    this sets the color*/
+  --hover-color: rgba(f,f,f,.5);
+
+    /*this is the background
+    color of the other menu*/
+  --other-background: white;
+}
+body {
+  background-image: url("../backgrounds/background3.jpg");
+}    

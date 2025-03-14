@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Directory - Web Viewer</title>
+    <link rel="stylesheet" href="../../main.css">
+    <link rel="stylesheet" href="../../styles/background4.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="web-viewer-navigation">
+        <a href="../index.html" class="web-viewer-navigation-left">
+            <div class="svg-wrappper">
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="rgba(22,22,22,1)"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z" class="svg"/></svg>
+            </div>
+            <p>Go home</p>
+        </a>
+        <div class="web-viewer-navigation-right">
+            <input type="text" id="input">
+            <button onclick="search()">Search</button>
+        </div>
+    </div>
+    <div class="web-viewer-hero">
+        <div class="iframe-wrapper">
+            <iframe src="" frameborder="0" id="iframe"></iframe>
+        </div>
+    </div>
+    
+</body>
+<script>
+// Function to extract query parameters
+function getQueryParam(param) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(param);
+}
+
+// Function to set query parameter and update iframe
+function search() {
+  let input = document.getElementById('input').value.trim();
+  const iframe = document.getElementById('iframe');
+
+  if (input) {
+    // Add https:// if missing
+    if (!input.startsWith('http://') && !input.startsWith('https://')) {
+      input = `https://${input}`;
+    }
+
+    // Add www. if only domain is provided (e.g., example.com)
+    const urlPattern = /^https?:\/\/(?!www\.)[^/]+/;
+    if (urlPattern.test(input)) {
+      const [protocol, domain] = input.split('://');
+      input = `${protocol}://www.${domain}`;
+    }
+
+    // Update the browser URL
+    const newUrl = `${window.location.origin}${window.location.pathname}?url=${encodeURIComponent(input)}`;
+    window.history.pushState({}, '', newUrl);
+
+    // Update the iframe src
+    iframe.src = input;
+  }
+}
+
+// Initialize iframe from query parameter if present
+document.addEventListener('DOMContentLoaded', () => {
+  const inputField = document.getElementById('input');
+  const initialUrl = getQueryParam('url');
+
+  // If there's an initial URL, set it in the iframe and input field
+  if (initialUrl) {
+    document.getElementById('iframe').src = initialUrl;
+    inputField.value = initialUrl;
+  }
+
+  // Listen for Enter key on the input field
+  inputField.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      search();
+    }
+  });
+});
+
+</script>
+</html>

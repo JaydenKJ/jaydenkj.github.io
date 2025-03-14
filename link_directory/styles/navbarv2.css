@@ -1,0 +1,40 @@
+body {
+    margin: 0;
+    padding: 0;
+}
+.navbar-container {
+    backdrop-filter: var(--global-blur);
+    background-color: var(--background-color);
+    margin: 0;
+    padding: .5em;
+    border-bottom: .1em solid;
+    border-color: var(--border-color);
+}
+body .navbar-container .title {
+    backdrop-filter: none;
+    background-color: rgba(0,0,0,0);
+    padding: 0;
+    margin: none;
+    border: none;
+}
+
+body .navbar-container .right button {
+    backdrop-filter: none;
+    background-color: rgba(0,0,0,0);
+    border: none;
+    margin: none;
+}
+
+
+/*body .navbar-container .right button {
+  border: none;
+  background-color: var(--background-color);
+  backdrop-filter: var(--global-blur);
+  padding: .5em .8em;
+  border-radius: 1.5em;
+  color: var(--text-color);
+  font-size: 1.2em;
+  cursor: pointer;
+  border: .1em solid;
+  border-color: var(--border-color);
+  user-select: none;

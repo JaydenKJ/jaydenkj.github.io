@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Directory</title>
+    <link rel="stylesheet" href="../main.css">
+
+
+
+
+    <!--Put the style of the desired
+    theme right after the
+    ?="styles/background".-->
+    <link id="stylesheet-link" rel="stylesheet" href="../styles/background1.css">
+
+    <link rel="stylesheet" href="../styles/navbarv2.css">
+
+
+
+    
+</head>
+<body>
+    <!--this took awhile just saying-->
+    <div class="navbar-container">
+        <div class="title">
+            <h2>
+                Link Directory
+            </h2>
+        </div>
+        <div class="right">
+            <button onclick="showBox()">Others</button>
+        </div>
+    </div>
+    <div id="other" style="display: none;" class="other" onclick="backgroundHide()">
+        <button class="easter-egg" onclick="showPi()">click me</button>
+        <div class="container">
+            <div class="title">
+                <h2>Others</h2>
+                <div class="svg-container" onclick="hideBox()">
+                    <svg
+   width="74.969749mm"
+   height="74.969749mm"
+   viewBox="0 0 74.969749 74.969749"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(6.2409094,-146.64915)">
+    <path
+        class="svg1"
+       style="
+            fill-opacity:1;
+            stroke:#2b0000;
+            stroke-width:0;
+            stroke-linecap:round;
+            stroke-linejoin:round;
+            stroke-dasharray:none;
+            paint-order:stroke fill markers
+        "
+       id="rect10"
+       width="100"
+       height="14.209114"
+       x="102.29524"
+       y="101.00504"
+       transform="rotate(45)"
+       d="m 110.23274,101.00504 h 84.125 a 7.9375,7.9375 45 0 1 7.9375,7.9375 7.1532178,7.1532178 141.68687 0 1 -7.9375,6.27162 h -84.125 a 7.9375,7.9375 45 0 1 -7.9375,-7.9375 7.1532178,7.1532178 141.68687 0 1 7.9375,-6.27162 z" />
+    <path
+        class="svg1"
+       style="rgba(22,22,2fill-opacity:1;stroke:#2b0000;stroke-width:0;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;paint-order:stroke fill markers"
+       id="rect11"
+       width="100"
+       height="14.209114"
+       x="-158.1096"
+       y="145.19069"
+       transform="rotate(-45)"
+       d="m -150.1721,145.19069 h 84.124996 a 7.9375,7.9375 45 0 1 7.9375,7.9375 7.1532178,7.1532178 141.68687 0 1 -7.9375,6.27161 H -150.1721 a 7.9375,7.9375 45 0 1 -7.9375,-7.9375 7.1532178,7.1532178 141.68687 0 1 7.9375,-6.27161 z" />
+                        </g>
+                    </svg>
+                </div>
+            </div>
+            <a href="https://www.thinkwave.com" target="_blank">Thinkwave</a>
+            <a href="web-viewer/index.html?url=https%3A%2F%2Fwww.ahdictionary.com">AH Dictionary</a>
+            <a href="https://www.rhymezone.com" target="_blank">RhymeZone</a>
+            <a href="web-viewer/index.html?url=https%3A%2F%2Fwww.dictionary.com">Dictionary.com</a>
+            <a href="https://lifebible.com" target="_blank">Life Bible</a>
+            <a href="web-viewer/index.html">Web viewer</a>
+            <a href="https://docs.google.com/spreadsheets/d/15ky8tqKwX1VTsYQoN3AB4fsSNMXwihymeg_0er4j7j8/edit?gid=1183579443#gid=1183579443" target="_blank">Thursday Morning Song List</a>
+            <div class="button top-button" onclick="changeStyle()">Change Style</div>
+            <div class="button" id="changeButton">Change Grade</div>
+            <a href="web-viewer/pdftris.pdf" target="_blank" id="pi" style="display: none;" onclick="hidePi()">🍍</a>
+
+        </div>
+    </div>
+    <div class="containter" id="content">    
+        
+       
+    </div>    
+</body>
+<script>
+   function showBox() {
+  var box = document.getElementById("other");
+  if (box.style.display === "none" || box.style.display === "") {
+    box.style.display = "block";
+  }
+}
+function hideBox() {
+  var box = document.getElementById("other");
+  if (box.style.display === "block") {
+    box.style.display = "none";
+  }
+}
+
+  function backgroundHide() {
+    var box = document.getElementById("other");
+    if (box.style.display === "block") {
+      box.style.display = "none";
+    }
+  }
+
+  document.querySelector('.other').onclick = function() {
+    hideBox(); // Hides the background and the container
+  };
+
+  document.querySelector('.container').onclick = function(event) {
+    event.stopPropagation(); // Prevents hiding when clicking inside the container
+  };
+
+      function showPi() {
+    var box = document.getElementById("pi");
+    if (box.style.display === "none") {
+      box.style.display = "block";
+    }
+  }
+
+      function hidePi() {
+    var box = document.getElementById("pi");
+    if (box.style.display === "block") {
+      box.style.display = "none";
+    }
+  }
+    
+
+
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+      // Check if there's a stored snippet or prompt for one
+      let snippetName = localStorage.getItem("selectedSnippet");
+
+      if (!snippetName) {
+          snippetName = prompt("Enter grade EXACTLY (9th, 10th):");
+          if (snippetName) {
+              localStorage.setItem("selectedSnippet", snippetName);
+          }
+      }
+
+      if (snippetName) {
+          fetchSnippet(snippetName);
+      }
+
+      // Function to fetch and display the snippet
+      function fetchSnippet(snippetName) {
+          fetch(`https://pi.tail6e5d07.ts.net/${snippetName}`)
+              .then(response => response.text())
+              .then(html => {
+                  document.getElementById('content').innerHTML = html;
+              })
+              .catch(error => {
+                  console.error('Error fetching snippet:', error);
+                  alert("Failed to load snippet.");
+              });
+      }
+
+      // Function to change the snippet (re-prompt the user)
+      function changeSnippet() {
+          localStorage.removeItem("selectedSnippet");
+          const newSnippet = prompt("Enter grade EXACTLY (9th, 10th):");
+          if (newSnippet) {
+              localStorage.setItem("selectedSnippet", newSnippet);
+              fetchSnippet(newSnippet);
+          }
+      }
+
+      // Set the onclick handler for the "Change Grade" button dynamically
+      document.getElementById("changeButton").onclick = changeSnippet;
+  });
+</script>
+
+
+<script>
+  // Function to change the stylesheet
+  function changeStyle() {
+    // Ask the user to input the stylesheet number (e.g., 1, 2)
+    let sheetNumber = prompt("Enter the stylesheet number (e.g., 1-6):");
+
+    // Check if the input is a valid number
+    if (sheetNumber && !isNaN(sheetNumber)) {
+      let sheet = '../styles/background' + sheetNumber + '.css'; // Build the path (background1.css, background2.css, etc.)
+      
+      // Validate if the CSS file exists (optional)
+      let validSheets = ['background1.css', 'background2.css', 'background3.css', 'background4.css', 'background5.css', 'background6.css']; // Add more valid filenames here
+      if (validSheets.includes('background' + sheetNumber + '.css')) {
+        // Change the href of the <link> tag to load the selected stylesheet
+        document.getElementById('stylesheet-link').href = sheet;
+        
+        // Save the selected stylesheet number to localStorage
+        localStorage.setItem('selectedStyle', sheetNumber);
+      } else {
+        alert('Invalid stylesheet number!');
+      }
+    } else {
+      alert('Please enter a valid number!');
+    }
+  }
+
+  // Check if a stylesheet was previously selected and apply it
+  window.onload = function() {
+    let savedStyle = localStorage.getItem('selectedStyle');
+    if (savedStyle) {
+      let sheet = '../styles/background' + savedStyle + '.css';
+      document.getElementById('stylesheet-link').href = sheet;
+    }
+  };
+</script>
+</html>
