@@ -10,11 +10,19 @@
       padding: 0;
     }
     #content {
-      height: 80vh;
+      height: 92vh;
     }
+    .button-wrapper {
+    height: 8vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+              background-color: #4CAF50;
+        cursor: pointer;
+}
+        
     .button {
-      padding: 10px;
-      background-color: #4CAF50;
+
       color: white;
       cursor: pointer;
       text-align: center;
@@ -25,9 +33,11 @@
 
   <!-- Monaco Editor container -->
   <div id="content"></div>
-
+    
+<div class="button-wrapper" onclick="saveSnippet()">
   <!-- Button to save the snippet -->
-  <div class="button" onclick="saveSnippet()">Save Snippet</div>
+    <div class="button" >Save Snippet</div>
+</div>
 
   <!-- Script to load Monaco Editor -->
   <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.35.0/min/vs/loader.js"></script>
