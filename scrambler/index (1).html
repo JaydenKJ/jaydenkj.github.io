@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rubik's Cube Scrambler</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    .container {
+      text-align: center;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    .scramble {
+      font-size: 18px;
+      font-family: monospace;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Rubik's Cube Scrambler</h1>
+    <div class="scramble" id="scramble">
+      Click the button to generate a scramble!
+    </div>
+    <button onclick="generateScramble()">Generate Scramble</button>
+  </div>
+
+  <script>
+    const moves = ["U", "D", "L", "R", "F", "B"];
+    const directions = ["", "'", "2"];
+
+    // Function to generate a random Rubik's Cube scramble
+    function generateScramble() {
+      const scrambleLength = 25;
+      let scramble = "";
+
+      for (let i = 0; i < scrambleLength; i++) {
+        const move = moves[Math.floor(Math.random() * moves.length)];
+        const direction = directions[Math.floor(Math.random() * directions.length)];
+        scramble += move + direction + " ";
+      }
+
+      document.getElementById("scramble").textContent = scramble.trim();
+    }
+  </script>
+
+</body>
+</html>
