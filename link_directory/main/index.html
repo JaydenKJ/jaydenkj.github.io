@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Link Directory</title>
     <link rel="stylesheet" href="../main.css">
+    <link rel="manifest" href="/link_directory/main/manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/link_directory/main/sw.js', {
+      scope: '/link_directory/main/'
+    });
+  }
+</script>
 
 
 
