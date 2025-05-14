@@ -5,14 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Link Directory</title>
     <link rel="stylesheet" href="../main.css">
-    <link rel="manifest" href="/link_directory/main/manifest.json">
-<script>
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/link_directory/main/sw.js', {
-      scope: '/link_directory/main/'
-    });
-  }
-</script>
 
 
 
@@ -92,11 +84,11 @@
                 </div>
             </div>
             <a href="https://www.thinkwave.com" target="_blank">Thinkwave</a>
-            <a href="web-viewer/index.html?url=https%3A%2F%2Fwww.ahdictionary.com">AH Dictionary</a>
+            <a href="https://ahdictionary.com" target="_blank">AH Dictionary</a>
             <a href="https://www.rhymezone.com" target="_blank">RhymeZone</a>
-            <a href="web-viewer/index.html?url=https%3A%2F%2Fwww.dictionary.com">Dictionary.com</a>
+            <a href="https://dictionary.com" target="_blank">Dictionary.com</a>
             <a href="https://lifebible.com" target="_blank">Life Bible</a>
-            <a href="web-viewer/index.html">Web viewer</a>
+          <!--  <a href="web-viewer/index.html">Web viewer</a>-->
             <a href="https://docs.google.com/spreadsheets/d/15ky8tqKwX1VTsYQoN3AB4fsSNMXwihymeg_0er4j7j8/edit?gid=1183579443#gid=1183579443" target="_blank">Thursday Morning Song List</a>
             <div class="button top-button" onclick="changeStyle()">Change Style</div>
             <div class="button" id="changeButton">Change Grade</div>
@@ -179,8 +171,8 @@ function hideBox() {
                   document.getElementById('content').innerHTML = html;
               })
               .catch(error => {
-                  console.error('Error fetching snippet:', error);
-                  alert("Failed to load snippet.");
+                  console.error('Error loading content:', error);
+                  alert("Failed to load content... try again.");
               });
       }
 
@@ -204,14 +196,14 @@ function hideBox() {
   // Function to change the stylesheet
   function changeStyle() {
     // Ask the user to input the stylesheet number (e.g., 1, 2)
-    let sheetNumber = prompt("Enter the stylesheet number (e.g., 1-6):");
+    let sheetNumber = prompt("Enter the style number (e.g., 1-8):");
 
     // Check if the input is a valid number
     if (sheetNumber && !isNaN(sheetNumber)) {
       let sheet = '../styles/background' + sheetNumber + '.css'; // Build the path (background1.css, background2.css, etc.)
       
       // Validate if the CSS file exists (optional)
-      let validSheets = ['background1.css', 'background2.css', 'background3.css', 'background4.css', 'background5.css', 'background6.css']; // Add more valid filenames here
+      let validSheets = ['background1.css', 'background2.css', 'background3.css', 'background4.css', 'background5.css', 'background6.css', 'background7.css', 'background8.css', 'background9.css']; // Add more valid filenames here
       if (validSheets.includes('background' + sheetNumber + '.css')) {
         // Change the href of the <link> tag to load the selected stylesheet
         document.getElementById('stylesheet-link').href = sheet;
