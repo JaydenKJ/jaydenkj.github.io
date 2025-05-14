@@ -1,0 +1,86 @@
+:root {
+
+    /*
+        This is for setting the styles
+        of the link directory and web viewer
+    */
+        /*this is the color filter 
+        on all the boxes*/
+      --background-color: blue;
+    
+        /*this sets the blur intensity
+        of all the elements that have it*/
+      --global-blur: none;
+    
+        /*this is the color of the border
+        around most of the boxes*/
+      --border-color: white;
+    
+        /*text color*/
+      --text-color: white;
+    
+        /*some elements change color
+        when you hover on them...
+        this sets the color*/
+      --hover-color: white;
+    
+        /*this is the background
+        color of the other menu*/
+      --other-background: rgba(22,22,22,1);
+    }
+    body {
+      background-image: none;
+    }
+    body .web-viewer-navigation .web-viewer-navigation-right input {
+      border-color: white;
+    }
+    
+    body .web-viewer-navigation .web-viewer-navigation-right button {
+      border-color: white;
+    }
+    
+    .svg {
+      fill: white;
+    }
+    .svg1 {
+      fill: #D6D7D6;
+    }
+
+body .containter {
+
+    display: block;
+
+}
+  body .containter .main a {
+    display: inline;
+    padding: .5em;
+    margin: .5em;
+    border-radius: .5em;
+    box-shadow: .5em .5em;
+    color: blue;
+    border: .1em solid;
+    border-color: blue;
+}
+body .containter .main a:hover {
+  background-color: blue;
+  color: white;
+  box-shadow: .5em .5em blue;
+  border-color: white;
+}
+ body .containter .main h2 {
+    margin-bottom: 2em;
+    color: blue;
+ }
+
+ body .containter .main:hover {
+  background-color: white;
+ }
+
+ body .containter .main {
+  padding: 2em;
+  background-color: white;
+ }
+ body .navbar-container .right button:hover {
+  color: blue;
+ }
+ 
