@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="refresh" content="60">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Library Barcode System</title>
+  <style>
+   #helpOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(255, 0, 0, 0.9);
+  color: white;
+  font-size: 2em;
+  font-weight: bold;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 20px;
+  z-index: 9999;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+#helpOverlay.visible {
+  visibility: visible;
+  opacity: 1;
+}
+
+#helpOverlay .message {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+#helpOverlay .closeBtn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 2em;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 10px;
+  user-select: none;
+}
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 30px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+  }
+
+  h3 {
+    color: #34495e;
+    margin-bottom: 12px;
+    margin-top: 0;
+  }
+
+  .section {
+    background-color: #fff;
+    padding: 20px 24px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 4px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+  }
+
+  button {
+    margin-top: 12px;
+    margin-right: 8px;
+    padding: 8px 16px;
+    background-color: #2c7be5;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  button:hover {
+    background-color: #1a5ec8;
+  }
+
+  #checkoutMessage,
+  #borrowerMessage,
+  #checkinMessage,
+  #lookupStatus {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+
+  #currentBorrowerDisplay {
+    font-weight: bold;
+    color: #555;
+  }
+
+  #receiptContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .receipt {
+    border: 1px dashed #555;
+    background-color: #fff;
+    padding: 10px;
+    width: 240px;
+    font-size: 13px;
+    border-radius: 4px;
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.05);
+  }
+
+  .receipt-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .receipt-line {
+    margin-bottom: 3px;
+    word-break: break-word;
+  }
+
+  #dueList,
+  #overdueList,
+  #allCheckoutsList {
+    background-color: #eef2f7;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 10px;
+    white-space: pre-wrap;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+  }
+
+  #lookupResult input {
+    width: 100%;
+    margin-top: 4px;
+    padding: 6px;
+    box-sizing: border-box;
+  }
+
+  @media print {
+    input, label, button, h2, .section {
+      display: none;
+    }
+    .receipt {
+      page-break-inside: avoid;
+    }
+  }
+</style>
+
+  </style>
+</head>
+<body>
+
+<h2>📚 Library Barcode System</h2>
+
+<!-- Step 1: Register Book -->
+<div class="section">
+  <h3>Step 1: Register Book</h3>
+  <label>Book Barcode: <input type="text" id="bookBarcode" /></label><br>
+  <label>Title: <input type="text" id="bookTitle" /></label><br>
+  <label>Author: <input type="text" id="bookAuthor" /></label><br>
+  <label>Call Number: <input type="text" id="bookCallNumber" /></label><br>
+  <button onclick="saveBook()">Save Book</button>
+</div>
+
+<!-- Step 2: Register Borrower -->
+<div class="section">
+  <h3>Step 2: Register Borrower</h3>
+  <label>Borrower Barcode: <input type="text" id="borrowerBarcode" /></label><br>
+  <label>Name: <input type="text" id="borrowerName" /></label><br>
+  <button onclick="saveBorrower()">Save Borrower</button>
+</div>
+
+<!-- Step 3: Checkout -->
+<div class="section">
+  <h3>Step 3: Checkout</h3>
+  <label>Scan Borrower Barcode: 
+    <input type="text" id="checkoutBorrower" 
+      onkeydown="if(event.key==='Enter') confirmBorrower()" 
+      autocomplete="off"
+    />
+  </label>
+  <div id="borrowerMessage" style="color: green;"></div>
+  <br>
+
+  <div><strong>Current Borrower:</strong> <span id="currentBorrowerDisplay">None</span></div><br>
+
+  <label>Scan Book Barcode: 
+    <input type="text" id="checkoutBook" 
+      onkeydown="if(event.key==='Enter') createReceipt()" 
+      autocomplete="off"
+    />
+  </label><br>
+  <div id="checkoutMessage" style="margin-top: 6px;"></div>
+  <button onclick="print()">Print</button>
+  <button onclick="clearLabels()">Clear Labels</button>
+</div>
+
+<!-- Step 4: Due Tomorrow -->
+<div class="section">
+  <h3>Step 4: View Checkouts Due Tomorrow</h3>
+  <button onclick="showDueTomorrow()">Show Due Tomorrow</button>
+  <div id="dueList" style="white-space: pre-wrap; margin-top: 10px;"></div>
+</div>
+
+<!-- Step 5: Overdue -->
+<div class="section">
+  <h3>Step 5: View Overdue</h3>
+  <button onclick="showOverdue()">Show Overdue</button>
+  <div id="overdueList" style="white-space: pre-wrap; margin-top: 10px;"></div>
+</div>
+
+<!-- Step 6: Check In -->
+<div class="section">
+  <h3>Step 6: Check In Book</h3>
+  <label>Book Barcode: 
+    <input type="text" id="checkinBookBarcode" 
+      onkeydown="if(event.key==='Enter') checkInBook()" 
+      autocomplete="off"
+    />
+  </label><br>
+  <div id="checkinMessage"></div>
+</div>
+
+<!-- Step 7: Lookup & Edit Book -->
+<div class="section">
+  <h3>Step 7: Lookup & Edit Book</h3>
+  <label>Book Barcode: <input type="text" id="lookupBookBarcode" /></label><br>
+  <label>Or Title: <input type="text" id="lookupBookTitle" /></label><br>
+  <button onclick="lookupBookStatus()">Check Status & Edit</button>
+  <div id="lookupResult"></div>
+</div>
+
+<!-- Step 8: View All Checkouts -->
+<div class="section">
+  <h3>Step 8: View All Checkouts</h3>
+  <button onclick="showAllCheckouts()">Show All Checkouts</button>
+  <div id="allCheckoutsList" style="white-space: pre-wrap; margin-top: 10px; font-weight: bold;"></div>
+</div>
+
+<!-- Step 9: View Currently Checked Out Books -->
+<div class="section">
+  <h3>Step 9: View Currently Checked Out Books</h3>
+  <button onclick="showCurrentlyCheckedOut()">Show Currently Checked Out</button>
+  <div id="checkedOutList" style="white-space: pre-wrap; margin-top: 10px; font-weight: bold;"></div>
+</div>
+
+<!-- Step 10: Export / Import All Data -->
+<div class="section">
+  <h3>Step 10: Export / Import Data</h3>
+  <button onclick="exportLibraryData()">⬇️ Export to JSON</button>
+  
+  <input type="file" id="importFile" accept=".json" style="margin-left: 12px;" />
+  <button onclick="importLibraryData()">⬆️ Import JSON</button>
+  <div id="importStatus" style="margin-top: 10px; font-weight: bold;"></div>
+</div>
+
+
+
+
+<!-- Receipts -->
+<div id="receiptContainer"></div>
+
+<script>
+  // Global arrays will now be populated from the backend on initial load,
+// and kept somewhat in sync, but the source of truth will be the database.
+let books = {};
+let borrowers = {};
+let checkouts = [];
+let currentBorrowerCode = null;
+
+// Base URL for your backend API
+const API_BASE_URL = 'https://pi.tail6e5d07.ts.net/api'; // Assuming your backend runs on port 3000
+
+// --- Utility Functions (unchanged, or slightly modified for async) ---
+
+// Format date nicely
+function formatDateLong(date) {
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString(undefined, options);
+}
+
+// Get date object days ahead (0=Today)
+function getDueDateObject(daysAhead) {
+    const d = new Date();
+    d.setHours(0,0,0,0);
+    d.setDate(d.getDate() + daysAhead);
+    return d;
+}
+
+// Function to initialize data from the backend
+async function initializeData() {
+    try {
+        const [booksRes, borrowersRes, checkoutsRes] = await Promise.all([
+            fetch(`${API_BASE_URL}/books`),
+            fetch(`${API_BASE_URL}/borrowers`),
+            fetch(`${API_BASE_URL}/checkouts/all`) // Fetch all checkouts initially
+        ]);
+
+        books = await booksRes.json();
+        borrowers = await borrowersRes.json();
+        checkouts = await checkoutsRes.json();
+
+        // Convert ISO strings back to Date objects for existing checkouts
+        checkouts.forEach(c => {
+            c.checkoutDate = new Date(c.checkoutDate);
+            c.dueDate = new Date(c.dueDate);
+        });
+
+        console.log("Data initialized from backend.");
+        // Call functions to display initial data if needed
+        showCurrentlyCheckedOut();
+        showDueTomorrow();
+        showOverdue();
+        showAllCheckouts();
+        updateCurrentBorrowerDisplay(); // Update display for current borrower if any
+    } catch (error) {
+        console.error("Error initializing data:", error);
+        alert("Failed to load data from the server. Please check the backend connection.");
+    }
+}
+
+// Call initializeData when the page loads
+document.addEventListener('DOMContentLoaded', initializeData);
+
+
+// --- Modified Functions to interact with Backend ---
+
+// Step 1: Save Book
+async function saveBook() {
+    const barcode = document.getElementById("bookBarcode").value.trim();
+    const title = document.getElementById("bookTitle").value.trim();
+    const author = document.getElementById("bookAuthor").value.trim();
+    const callNumber = document.getElementById("bookCallNumber").value.trim();
+
+    if (!barcode || !title || !author || !callNumber) {
+        return alert("Please fill all book fields.");
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/books`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode, title, author, callNumber })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            books[barcode] = { title, author, callNumber, barcode }; // Update local cache
+            alert(`✅ Saved: ${title}`);
+            document.getElementById("bookBarcode").value = '';
+            document.getElementById("bookTitle").value = '';
+            document.getElementById("bookAuthor").value = '';
+            document.getElementById("bookCallNumber").value = '';
+        } else {
+            // Handle specific backend error messages, e.g., duplicate barcode
+            if (response.status === 409) { // Conflict status code for duplicate
+                if (confirm("Book barcode already exists. Overwrite?")) {
+                    await updateBook(barcode, title, author, callNumber);
+                    alert(`✅ Overwritten: ${title}`);
+                    // Optionally refresh data if you want to be super strict
+                    // await initializeData();
+                }
+            } else {
+                alert(`Error saving book: ${result.message || response.statusText}`);
+            }
+        }
+    } catch (error) {
+        console.error("Error saving book:", error);
+        alert("Network error or server unavailable.");
+    }
+}
+
+async function updateBook(barcode, title, author, call_number) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, author, call_number })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            books[barcode] = { title, author, call_number, barcode }; // Update local cache
+            console.log("Book updated successfully (from overwrite).");
+        } else {
+            alert(`Error updating book: ${result.message || response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error updating book:", error);
+        alert("Network error during book update.");
+    }
+}
+
+
+// Step 2: Save Borrower
+async function saveBorrower() {
+    const barcode = document.getElementById("borrowerBarcode").value.trim();
+    const name = document.getElementById("borrowerName").value.trim();
+
+    if (!barcode || !name) {
+        return alert("Please fill both borrower fields.");
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/borrowers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode, name })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            borrowers[barcode] = name; // Update local cache
+            alert(`✅ Saved: ${name}`);
+            document.getElementById("borrowerBarcode").value = '';
+            document.getElementById("borrowerName").value = '';
+        } else {
+            alert(`Error saving borrower: ${result.message || response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error saving borrower:", error);
+        alert("Network error or server unavailable.");
+    }
+}
+
+// Step 3: Confirm Borrower for checkout
+async function confirmBorrower() {
+    const barcode = document.getElementById("checkoutBorrower").value.trim();
+    const msg = document.getElementById("borrowerMessage");
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/borrowers/${barcode}`);
+        const borrowerData = await response.json();
+
+        if (response.ok) {
+            currentBorrowerCode = barcode;
+            // Update our local borrowers object if it's new or changed
+            borrowers[barcode] = borrowerData.name;
+            updateCurrentBorrowerDisplay();
+            msg.style.color = "green";
+            msg.textContent = `✅ Borrower confirmed: ${borrowerData.name}`;
+            document.getElementById("checkoutBorrower").value = '';
+            document.getElementById("checkoutBook").focus();
+        } else {
+            msg.style.color = "red";
+            msg.textContent = "❌ Borrower not found.";
+            currentBorrowerCode = null;
+            updateCurrentBorrowerDisplay();
+        }
+    } catch (error) {
+        console.error("Error confirming borrower:", error);
+        msg.style.color = "red";
+        msg.textContent = "Network error or server unavailable.";
+        currentBorrowerCode = null;
+        updateCurrentBorrowerDisplay();
+    }
+}
+
+function updateCurrentBorrowerDisplay() {
+    const display = document.getElementById("currentBorrowerDisplay");
+    if (currentBorrowerCode && borrowers[currentBorrowerCode]) {
+        display.textContent = `${borrowers[currentBorrowerCode]} (${currentBorrowerCode})`;
+    } else {
+        display.textContent = "None";
+    }
+}
+
+// Step 3: Create checkout receipt
+async function createReceipt() {
+    const msg = document.getElementById("checkoutMessage");
+    msg.textContent = "";
+
+    if (!currentBorrowerCode || !borrowers[currentBorrowerCode]) {
+        msg.style.color = "red";
+        msg.textContent = "❌ Please confirm a valid borrower first.";
+        return;
+    }
+
+    const bookBarcode = document.getElementById("checkoutBook").value.trim();
+    if (!bookBarcode) {
+        msg.style.color = "red";
+        msg.textContent = "❌ Please scan a book barcode.";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkouts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bookBarcode: bookBarcode,
+                borrowerCode: currentBorrowerCode
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Add the new checkout to our local array (ensure dates are Date objects)
+            result.checkout.checkoutDate = new Date(result.checkout.checkoutDate);
+            result.checkout.dueDate = new Date(result.checkout.dueDate);
+            checkouts.push(result.checkout);
+            addReceipt(result.checkout); // Add to UI receipt
+            msg.style.color = "green";
+            msg.textContent = `✅ Checked out "${result.checkout.title}" to ${result.checkout.name}. Due on ${formatDateLong(result.checkout.dueDate)}.`;
+            document.getElementById("checkoutBook").value = "";
+
+            // Refresh relevant lists
+            showCurrentlyCheckedOut();
+            showDueTomorrow();
+            showOverdue();
+            showAllCheckouts();
+
+        } else {
+            msg.style.color = "red";
+            msg.textContent = `❌ ${result.message || response.statusText}`;
+        }
+    } catch (error) {
+        console.error("Error creating checkout:", error);
+        msg.style.color = "red";
+        msg.textContent = "Network error or server unavailable.";
+    }
+}
+
+// Add receipt card (no changes to this function)
+function addReceipt(checkout) {
+    const container = document.getElementById("receiptContainer");
+    const receipt = document.createElement("div");
+    receipt.className = "receipt";
+    receipt.innerHTML = `
+        <div class="receipt-title" title="${checkout.title}">${checkout.title}</div>
+        <div class="receipt-line">Author: ${checkout.author}</div>
+        <div class="receipt-line">Call Number: ${checkout.call_number}</div>
+        <div class="receipt-line">Barcode: ${checkout.barcode}</div>
+        <div class="receipt-line">Borrower: ${checkout.name}</div>
+        <div class="receipt-line">Borrower Barcode: ${checkout.borrowerCode}</div>
+        <div class="receipt-line">Checked Out: ${formatDateLong(new Date(checkout.checkoutDate))}</div>
+        <div class="receipt-line">Due: ${formatDateLong(new Date(checkout.dueDate))}</div>
+    `;
+    container.appendChild(receipt);
+}
+
+// Clear receipts and messages (no changes to this function)
+function clearLabels() {
+    document.getElementById("receiptContainer").innerHTML = "";
+    document.getElementById("checkoutMessage").textContent = "";
+    document.getElementById("borrowerMessage").textContent = "";
+}
+
+// Step 4: Show checkouts due tomorrow
+async function showDueTomorrow() {
+    const dueList = document.getElementById("dueList");
+    dueList.textContent = "";
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkouts/due/tomorrow`);
+        const dueTomorrowBooks = await response.json();
+
+        if (dueTomorrowBooks.length === 0) {
+            dueList.textContent = "No books due tomorrow.";
+            return;
+        }
+        let text = "Books Due Tomorrow:\n";
+        dueTomorrowBooks.forEach(b => {
+            text += `• "${b.title}" by ${b.author} (Barcode: ${b.barcode}), Borrower: ${b.name}\n`;
+        });
+        dueList.textContent = text;
+    } catch (error) {
+        console.error("Error fetching due tomorrow books:", error);
+        dueList.textContent = "Error loading books due tomorrow.";
+    }
+}
+
+// Step 5: Show overdue books
+async function showOverdue() {
+    const overdueList = document.getElementById("overdueList");
+    overdueList.textContent = "";
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkouts/overdue`);
+        const overdueBooks = await response.json();
+
+        if (overdueBooks.length === 0) {
+            overdueList.textContent = "No overdue books.";
+            return;
+        }
+        let text = "Overdue Books:\n";
+        overdueBooks.forEach(b => {
+            text += `• "${b.title}" by ${b.author} (Barcode: ${b.barcode}), Borrower: ${b.name}, Due: ${formatDateLong(new Date(b.dueDate))}\n`;
+        });
+        overdueList.textContent = text;
+    } catch (error) {
+        console.error("Error fetching overdue books:", error);
+        overdueList.textContent = "Error loading overdue books.";
+    }
+}
+
+// Step 6: Check In book
+async function checkInBook() {
+    const barcode = document.getElementById("checkinBookBarcode").value.trim();
+    const msg = document.getElementById("checkinMessage");
+
+    if (!barcode) {
+        msg.style.color = "red";
+        msg.textContent = "Please enter a barcode.";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Update local checkouts array
+            const checkedInItem = checkouts.find(c => c.barcode === barcode && !c.checkedIn);
+            if (checkedInItem) {
+                checkedInItem.checkedIn = true;
+            }
+            msg.style.color = "green";
+            msg.textContent = `✅ Book "${result.title}" checked in successfully.`;
+            document.getElementById("checkinBookBarcode").value = "";
+            // Refresh lists
+            showCurrentlyCheckedOut();
+            showDueTomorrow();
+            showOverdue();
+            showAllCheckouts();
+        } else {
+            msg.style.color = "red";
+            msg.textContent = `❌ ${result.message || response.statusText}`;
+        }
+    } catch (error) {
+        console.error("Error checking in book:", error);
+        msg.style.color = "red";
+        msg.textContent = "Network error or server unavailable.";
+    }
+}
+
+// Step 7: Lookup & Edit book
+async function lookupBookStatus() {
+    const barcodeInput = document.getElementById("lookupBookBarcode").value.trim();
+    const titleInput = document.getElementById("lookupBookTitle").value.trim().toLowerCase();
+    const resultDiv = document.getElementById("lookupResult");
+    resultDiv.innerHTML = "";
+
+    let bookToLookup = null;
+
+    try {
+        if (barcodeInput) {
+            const response = await fetch(`${API_BASE_URL}/books/${barcodeInput}`);
+            if (response.ok) {
+                bookToLookup = await response.json();
+            }
+        } else if (titleInput) {
+            const response = await fetch(`${API_BASE_URL}/books/search?title=${encodeURIComponent(titleInput)}`);
+            const searchResults = await response.json();
+            if (searchResults.length > 0) {
+                // For simplicity, take the first match. In a real app, you might show a list.
+                bookToLookup = searchResults[0];
+            }
+        }
+
+        if (!bookToLookup) {
+            resultDiv.textContent = "❌ Book not found.";
+            return;
+        }
+
+        // Check status (from local checkouts array which is sync'd from backend)
+        const checkedOut = checkouts.some(c => c.barcode === bookToLookup.barcode && !c.checkedIn);
+
+        const statusText = checkedOut ? "❌ Status: Checked Out" : "✅ Status: Checked In";
+        const statusColor = checkedOut ? "red" : "green";
+
+        resultDiv.innerHTML = `
+            <div><strong>Edit Book Info:</strong></div>
+            <label>Barcode: <input id="editBarcode" value="${bookToLookup.barcode}" /></label><br>
+            <label>Title: <input id="editTitle" value="${bookToLookup.title}" /></label><br>
+            <label>Author: <input id="editAuthor" value="${bookToLookup.author}" /></label><br>
+            <label>Call Number: <input id="editCallNumber" value="${bookToLookup.call_number}" /></label><br>
+            <button onclick="saveBookEdits('${bookToLookup.barcode}')">💾 Save Changes</button>
+            <div id="lookupStatus" style="color: ${statusColor};">${statusText}</div>
+        `;
+    } catch (error) {
+        console.error("Error looking up book:", error);
+        resultDiv.textContent = "Error looking up book information.";
+    }
+}
+
+async function saveBookEdits(originalBarcode) {
+    const newBarcode = document.getElementById("editBarcode").value.trim();
+    const newTitle = document.getElementById("editTitle").value.trim();
+    const newAuthor = document.getElementById("editAuthor").value.trim();
+    const newCallNumber = document.getElementById("editCallNumber").value.trim();
+    const msgDiv = document.getElementById("lookupResult"); // Use this for messages
+
+    if (!newBarcode || !newTitle || !newAuthor || !newCallNumber) {
+        alert("Please fill all fields.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/books/${originalBarcode}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                newBarcode, // Send new barcode if it changed
+                title: newTitle,
+                author: newAuthor,
+                call_number: newCallNumber
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("✅ Book updated!");
+            // Re-initialize all data to ensure consistency across the UI
+            await initializeData();
+            document.getElementById("lookupResult").innerHTML = "";
+            document.getElementById("lookupBookTitle").value = "";
+            document.getElementById("lookupBookBarcode").value = "";
+        } else {
+            alert(`❌ Error saving changes: ${result.message || response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error saving book edits:", error);
+        alert("Network error or server unavailable.");
+    }
+}
+
+// Step 8: Show all checkouts
+async function showAllCheckouts() {
+    const allCheckoutsList = document.getElementById("allCheckoutsList");
+    allCheckoutsList.textContent = "";
+
+    try {
+        // We already fetched all checkouts during initialization, just use the local array
+        // If you want to ensure the absolute latest, you could re-fetch:
+        // const response = await fetch(`${API_BASE_URL}/checkouts/all`);
+        // const allCurrentCheckouts = await response.json();
+
+        if (checkouts.length === 0) {
+            allCheckoutsList.textContent = "No checkouts recorded.";
+            return;
+        }
+        let text = "All Checkouts:\n";
+        checkouts.forEach(c => {
+            text += `• "${c.title}" by ${c.author} (Barcode: ${c.barcode})\n  Borrower: ${c.name} (${c.borrowerCode})\n  Checked Out: ${formatDateLong(new Date(c.checkoutDate))}\n  Due: ${formatDateLong(new Date(c.dueDate))}\n  Status: ${c.checkedIn ? "Checked In" : "Checked Out"}\n\n`;
+        });
+        allCheckoutsList.textContent = text;
+    } catch (error) {
+        console.error("Error showing all checkouts:", error);
+        allCheckoutsList.textContent = "Error loading all checkouts.";
+    }
+}
+
+// Show currently checked out books (now fetches from backend)
+async function showCurrentlyCheckedOut() {
+    const checkedOutList = document.getElementById("checkedOutList");
+    checkedOutList.textContent = ""; // Clear previous content
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkouts/current`);
+        const currentlyOut = await response.json();
+
+        if (currentlyOut.length === 0) {
+            checkedOutList.textContent = "No books are currently checked out.";
+            return;
+        }
+
+        let text = "Currently Checked Out Books:\n";
+        currentlyOut.forEach(b => {
+            text += `• "${b.title}" by ${b.author} (Barcode: ${b.barcode})\n  Borrower: ${b.name} (${b.borrowerCode})\n  Checked Out: ${formatDateLong(new Date(b.checkoutDate))}\n  Due: ${formatDateLong(new Date(b.dueDate))}\n\n`;
+        });
+
+        checkedOutList.textContent = text;
+    } catch (error) {
+        console.error("Error fetching currently checked out books:", error);
+        checkedOutList.textContent = "Error loading currently checked out books.";
+    }
+}
+
+// Export/Import functions (these will now interact with your backend for data transfer)
+// For export, the backend will generate the JSON
+async function exportLibraryData() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/export-data`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "library_data_export.json";
+        document.body.appendChild(link); // Append to body to make it clickable
+        link.click();
+        document.body.removeChild(link); // Clean up
+        URL.revokeObjectURL(url);
+        alert("✅ Library data exported successfully!");
+    } catch (error) {
+        console.error("Error exporting data:", error);
+        alert("❌ Failed to export library data. Check server logs.");
+    }
+}
+
+// For import, the frontend sends the file to the backend
+async function importLibraryData() {
+    const fileInput = document.getElementById("importFile");
+    const status = document.getElementById("importStatus");
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+        status.style.color = "red";
+        status.textContent = "❌ Please select a JSON file first.";
+        return;
+    }
+
+    const file = fileInput.files[0];
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/import-data`, {
+            method: 'POST',
+            body: formData // No Content-Type header needed; fetch sets it for FormData
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            status.style.color = "green";
+            status.textContent = "✅ Data imported successfully!";
+            // Re-initialize local data after successful import
+            await initializeData();
+        } else {
+            status.style.color = "red";
+            status.textContent = `❌ Import failed: ${result.message || response.statusText}`;
+        }
+    } catch (err) {
+        console.error("Error importing data:", err);
+        status.style.color = "red";
+        status.textContent = "❌ Network error or server unavailable during import.";
+    }
+}
+
+
+</script>
+
+</body>
+</html>
