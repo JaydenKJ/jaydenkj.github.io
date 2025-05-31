@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search Library Books</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      padding: 30px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin: 10px 0 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 10px 16px;
+      background-color: #2c7be5;
+      border: none;
+      color: #fff;
+      font-size: 14px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1a5ec8;
+    }
+
+    .book-card {
+      background: #fff;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .book-title {
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .book-author, .book-callnumber, .book-barcode, .book-status {
+      font-size: 14px;
+      margin-top: 4px;
+    }
+
+    .status-checked-in {
+      color: green;
+      font-weight: bold;
+    }
+
+    .status-checked-out {
+      color: red;
+      font-weight: bold;
+    }
+
+    #noResults {
+      color: red;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Search Library Books</h1>
+  <input type="text" id="searchTitle" placeholder="Enter book title or author..." onkeydown="if(event.key === 'Enter') searchBooks()" />
+  <button onclick="searchBooks()">Search</button>
+
+  <!-- Admin Button -->
+  <button id="adminToggleBtn" onclick="toggleAdminMode()" style="position: fixed; top: 20px; right: 20px; background-color: #e74c3c; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">Admin</button>
+
+  <div id="results"></div>
+
+  <script>
+    // Base URL for your backend API
+const API_BASE_URL = 'https://pi.tail6e5d07.ts.net/api'; // Make sure this matches your backend's URL
+
+let adminMode = false;
+let books = {}; // Will be populated dynamically from the server
+let checkouts = []; // Will be populated dynamically from the server
+
+// --- Initialization Function ---
+async function initializeDataForLookup() {
+    try {
+        // Fetch all books (to enable comprehensive search and display)
+        const booksResponse = await fetch(`${API_BASE_URL}/books`);
+        if (!booksResponse.ok) throw new Error('Failed to fetch books');
+        books = await booksResponse.json(); // books will be an object { barcode: book_data, ... }
+
+        // Fetch all checkouts (to determine book status)
+        const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`);
+        if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts');
+        checkouts = await checkoutsResponse.json(); // checkouts will be an array of checkout objects
+
+        console.log("Books and checkouts initialized from backend for lookup.");
+        searchBooks(); // Perform an initial search to display all books
+    } catch (error) {
+        console.error("Error initializing data for lookup:", error);
+        alert("Failed to load library data from the server. Please check the backend connection.");
+    }
+}
+
+// --- Admin Mode Toggling ---
+function toggleAdminMode() {
+    if (!adminMode) {
+        const code = prompt("Enter admin code:");
+        if (code === "42") {
+            adminMode = true;
+            alert("Admin mode enabled.");
+            document.getElementById("adminToggleBtn").style.backgroundColor = "#27ae60";
+        } else {
+            alert("Incorrect code.");
+        }
+    } else {
+        adminMode = false;
+        alert("Admin mode disabled.");
+        document.getElementById("adminToggleBtn").style.backgroundColor = "#e74c3c";
+    }
+    searchBooks(); // Re-render results based on admin mode
+}
+
+// --- Search Function (Modified for Backend Interaction) ---
+async function searchBooks() {
+    const query = document.getElementById("searchTitle").value.trim().toLowerCase();
+    const resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = ""; // Clear previous results
+
+    let matches = [];
+
+    try {
+        if (!query) {
+            // If query is empty, fetch all books from the backend
+            const response = await fetch(`${API_BASE_URL}/books`);
+            if (!response.ok) throw new Error('Failed to fetch all books');
+            const allBooksData = await response.json();
+            matches = Object.entries(allBooksData).map(([barcode, book]) => ({ barcode, book }))
+                .sort((a, b) => a.book.title.localeCompare(b.book.title));
+            // Update local 'books' object for consistency
+            books = allBooksData;
+
+        } else {
+            // For a specific query, we'll use a backend search endpoint
+            // Assuming your backend supports search by title or author
+            const response = await fetch(`${API_BASE_URL}/books/search?query=${encodeURIComponent(query)}`);
+            if (!response.ok) throw new Error('Failed to search books');
+            const searchResults = await response.json();
+
+            // The backend search function might return exact matches or fuzzy,
+            // for now, we'll just display what the backend gives us.
+            // If backend search is exact, you might re-implement client-side fuzzy search if desired.
+            if (searchResults.length === 0) {
+                resultsDiv.innerHTML = `<p id="noResults">No books found matching "${query}".</p>`;
+                return;
+            }
+
+            matches = searchResults.map(book => ({ barcode: book.barcode, book }));
+            // Note: We're not calculating similarityScore on the client-side anymore
+            // because the backend should handle the search logic.
+            // If you want client-side fuzzy matching, you'd need to fetch all books
+            // and then filter locally as before, but this is less efficient for large datasets.
+        }
+
+        // Re-fetch checkouts to ensure the most up-to-date status
+        const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`);
+        if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts for status update');
+        checkouts = await checkoutsResponse.json();
+
+        matches.forEach(({ book, barcode }) => {
+            // Find active checkout for this book
+            const activeCheckout = checkouts.find(c => c.barcode === barcode && !c.checkedIn);
+            let statusHTML = activeCheckout ?
+                `<div class="book-status status-checked-out">❌ Checked Out by ${activeCheckout.name} (Due: ${formatDate(activeCheckout.dueDate)})</div>` :
+                `<div class="book-status status-checked-in">✅ Checked In</div>`;
+
+            const bookCard = document.createElement("div");
+            bookCard.className = "book-card";
+
+            if (adminMode) {
+                // Admin mode edit fields will now trigger backend updates
+                bookCard.innerHTML = `
+                    <div><strong>Title:</strong> <input value="${book.title}" onchange="updateBook('${barcode}', 'title', this.value)" /></div>
+                    <div><strong>Author:</strong> <input value="${book.author}" onchange="updateBook('${barcode}', 'author', this.value)" /></div>
+                    <div><strong>Call Number:</strong> <input value="${book.call_number}" onchange="updateBook('${barcode}', 'callNumber', this.value)" /></div>
+                    <div><strong>Barcode:</strong> <input value="${barcode}" onchange="changeBarcode('${barcode}', this.value)" /></div>
+                    ${statusHTML}
+                    <button onclick="deleteBook('${barcode}')" style="margin-top: 10px; background-color: #c0392b; color: white; padding: 6px 10px; border: none; border-radius: 4px;">Delete Book</button>
+                `;
+            } else {
+                bookCard.innerHTML = `
+                    <div class="book-title">${book.title}</div>
+                    <div class="book-author"><strong>Author:</strong> ${book.author}</div>
+                    <div class="book-call_number"><strong>Call Number:</strong> ${book.call_number}</div>
+                    <div class="book-barcode"><strong>Barcode:</strong> ${barcode}</div>
+                    ${statusHTML}
+                `;
+            }
+
+            resultsDiv.appendChild(bookCard);
+        });
+
+    } catch (error) {
+        console.error("Error searching books:", error);
+        resultsDiv.innerHTML = `<p id="errorResults" style="color: red;">Error searching books. Please try again or check server connection.</p>`;
+    }
+}
+
+// --- Admin Mode Actions (Modified for Backend Interaction) ---
+async function updateBook(barcode, field, value) {
+    try {
+        const payload = { [field]: value }; // Construct payload for the specific field
+        // If the field is title, author, or callNumber, use the existing PUT /api/books/:barcode endpoint
+        const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(`✅ Book "${field}" updated!`);
+            // Optimistically update local 'books' cache
+            if (books[barcode]) {
+                books[barcode][field] = value;
+            }
+            // Re-run search to refresh display (especially if field is title/author for sorting)
+            searchBooks();
+        } else {
+            alert(`❌ Error updating book: ${result.message || response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error updating book:", error);
+        alert("Network error or server unavailable during book update.");
+    }
+}
+
+async function changeBarcode(oldBarcode, newBarcode) {
+    if (!newBarcode || newBarcode.trim() === '') {
+        alert("New barcode cannot be empty.");
+        searchBooks(); // Revert display
+        return;
+    }
+    if (newBarcode === oldBarcode) {
+        alert("Barcode is the same. No change needed.");
+        return;
+    }
+
+    try {
+        // Use the existing PUT /api/books/:barcode endpoint, sending newBarcode in body
+        const response = await fetch(`${API_BASE_URL}/books/${oldBarcode}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                newBarcode: newBarcode,
+                title: books[oldBarcode].title, // Send existing values to avoid partial updates
+                author: books[oldBarcode].author,
+                call_number: books[oldBarcode].call_number
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert("✅ Barcode changed successfully!");
+            // Update local 'books' cache
+            if (books[oldBarcode]) {
+                books[newBarcode] = { ...books[oldBarcode], barcode: newBarcode };
+                delete books[oldBarcode];
+            }
+            searchBooks(); // Re-run search to refresh display
+        } else {
+            alert(`❌ Error changing barcode: ${result.message || response.statusText}`);
+            searchBooks(); // Revert display if there was an error
+        }
+    } catch (error) {
+        console.error("Error changing barcode:", error);
+        alert("Network error or server unavailable during barcode change.");
+        searchBooks(); // Revert display
+    }
+}
+
+async function deleteBook(barcode) {
+    if (confirm("Are you sure you want to delete this book? This action is irreversible.")) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+                method: 'DELETE'
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`✅ Book "${barcode}" deleted successfully!`);
+                delete books[barcode]; // Optimistically update local cache
+                searchBooks(); // Re-render results
+            } else {
+                alert(`❌ Error deleting book: ${result.message || response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error deleting book:", error);
+            alert("Network error or server unavailable during book deletion.");
+        }
+    }
+}
+
+// --- Utility Functions (mostly unchanged, added comments for date conversion) ---
+
+function levenshtein(a, b) {
+    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+            matrix[i][j] = Math.min(
+                matrix[i - 1][j - 1] + (b[i - 1] === a[j - 1] ? 0 : 1),
+                matrix[i][j - 1] + 1,
+                matrix[i - 1][j] + 1
+            );
+        }
+    }
+    return matrix[b.length][a.length];
+}
+
+function normalize(text) {
+    return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+}
+
+function similarityScore(a, b) {
+    // This client-side fuzzy logic is commented out because the backend now handles search.
+    // If you need fuzzy search on the client, you'd fetch all books first.
+    // However, for large datasets, this is inefficient. It's better done on the backend.
+    const normA = normalize(a);
+    const normB = normalize(b);
+    const dist = levenshtein(normA, normB);
+    return 1 - dist / Math.max(normA.length, normB.length);
+}
+
+
+function formatDate(dateStr) {
+    // Backend returns ISO strings, convert them to Date objects for formatting
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) { // Use getTime() for robust Date object validation
+        console.warn("Invalid date string provided to formatDate:", dateStr);
+        return "Invalid Date";
+    }
+    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+// --- Idle Timer (unchanged) ---
+let idleTimer;
+function resetIdleTimer() {
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => {
+        location.reload();
+    }, 100000000); // 10 seconds for testing, adjust as needed
+}
+['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(event => {
+    document.addEventListener(event, resetIdleTimer);
+});
+resetIdleTimer();
+
+// --- Initial Load ---
+window.onload = initializeDataForLookup; // Call the async initializer on page load
+  </script>
+</body>
+</html>
