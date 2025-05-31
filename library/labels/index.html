@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Library Book Label Generator</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+
+    input {
+      margin-top: 4px;
+      padding: 6px;
+      width: 300px;
+      font-size: 16px;
+      font-family: 'Quicksand', sans-serif;
+    }
+
+    button {
+      margin-top: 15px;
+      margin-right: 10px;
+      padding: 8px 16px;
+      background-color: #2a7ae2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+      font-family: 'Quicksand', sans-serif;
+    }
+
+    button:hover {
+      background-color: #1a5ac1;
+    }
+
+    #labelContainer {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      border: 1px solid #000;
+      padding: 10px;
+      background-color: #fff;
+      font-family: 'Quicksand', sans-serif;
+      font-size: 18px;
+      height: 120px;
+      max-width: 300px;
+      box-sizing: border-box;
+      cursor: pointer;
+    }
+
+    .qrcode {
+      margin-right: 12px;
+      flex-shrink: 0;
+      width: 60px;
+      height: 60px;
+    }
+
+    .labelText {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.4;
+      font-size: 16px;
+      max-width: calc(300px - 72px);
+      overflow: hidden;
+    }
+
+    .line {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .titleLine {
+      font-weight: 600;
+    }
+
+    .section-separator {
+      border-top: 1px solid #ccc;
+      margin: 30px 0;
+      padding-top: 20px;
+    }
+
+    #searchResults {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      padding: 15px;
+      background-color: #f9f9f9;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .search-result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dotted #eee;
+    }
+
+    .search-result-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-result-details {
+      flex-grow: 1;
+    }
+
+    .search-result-details strong {
+      display: block;
+      font-size: 1.1em;
+    }
+
+    .search-result-item button {
+      margin-left: 15px;
+      padding: 5px 10px;
+      font-size: 14px;
+      margin-top: 0; /* Override default button margin */
+    }
+
+    @media print {
+      body {
+        background: none;
+      }
+
+      input, label, button, h2, h3, .section-separator, #searchResults {
+        display: none;
+      }
+
+      #labelContainer {
+        gap: 20px;
+      }
+
+      .label {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h2>Library Book Label Generator</h2>
+
+  <h3>Create New Label</h3>
+  <label>Book Name:
+    <input type="text" id="bookTitle" />
+  </label>
+
+  <label>Author:
+    <input type="text" id="author" />
+  </label>
+
+  <label>Call Number:
+    <input type="text" id="callNumber" />
+  </label>
+
+  <button onclick="addLabel()">Add New Label</button>
+  <button onclick="printLabels()">Print Labels</button>
+  <button onclick="clearLabels()">Clear All</button>
+
+  <div class="section-separator"></div>
+
+  <h3>Reprint Existing Label by Barcode (Exact Match)</h3>
+  <label>Book Barcode to Reprint:
+    <input type="text" id="reprintBarcode" placeholder="e.g., 87654321" />
+  </label>
+  <button onclick="reprintLabelByBarcode()">Reprint by Barcode</button>
+
+  <div class="section-separator"></div>
+
+  <h3>Reprint Existing Label by Title/Author (Search)</h3>
+  <label>Search Book Title or Author:
+    <input type="text" id="searchQuery" placeholder="e.g., The Great Gatsby" />
+  </label>
+  <button onclick="searchAndDisplayBooks()">Search for Labels</button>
+
+  <div id="searchResults">
+    </div>
+
+  <div id="labelContainer"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+  <script>
+    const API_BASE_URL = 'https://pi.tail6e5d07.ts.net/api'; // <--- IMPORTANT: Set your server IP/port here
+    let labelCount = 0;
+
+    function generateRandomID() {
+      // This is now only for generating a *new* barcode for newly added books
+      // Ensure it's sufficiently unique for a barcode
+      return Math.floor(100000000 + Math.random() * 900000000).toString(); // 9-digit number
+    }
+
+    async function addLabel() {
+      if (labelCount >= 10) {
+        alert("You can only add up to 10 labels per page. Please print or clear existing labels.");
+        return;
+      }
+
+      const title = document.getElementById('bookTitle').value.trim();
+      const author = document.getElementById('author').value.trim();
+      const callNumber = document.getElementById('callNumber').value.trim();
+      const barcode = generateRandomID(); // Generate a new barcode for new books
+
+      if (!title || !author || !callNumber) {
+        alert("Please fill in all fields for the new book.");
+        return;
+      }
+
+      // Save book to the library barcode system (via API)
+      const success = await saveBookToLibrarySystem(barcode, title, author, callNumber);
+
+      if (success) {
+        appendLabelToContainer(title, author, callNumber, barcode);
+
+        document.getElementById('bookTitle').value = '';
+        document.getElementById('author').value = '';
+        document.getElementById('callNumber').value = '';
+        document.getElementById('bookTitle').focus();
+      }
+    }
+
+    // Function to handle reprinting by direct barcode input
+    async function reprintLabelByBarcode() {
+      if (labelCount >= 10) {
+        alert("You can only add up to 10 labels per page. Please print or clear existing labels.");
+        return;
+      }
+
+      const barcodeToReprint = document.getElementById('reprintBarcode').value.trim();
+
+      if (!barcodeToReprint) {
+        alert("Please enter a barcode to reprint.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/books/${barcodeToReprint}`);
+        if (!response.ok) {
+          if (response.status === 404) {
+            alert("Book not found for the given barcode. Please check the barcode.");
+          } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to fetch book data.');
+          }
+          return; // Stop execution if book not found or other error
+        }
+
+        const book = await response.json();
+        // Backend returns call_number (snake_case), frontend expects callNumber (camelCase)
+        appendLabelToContainer(book.title, book.author, book.call_number, book.barcode);
+        document.getElementById('reprintBarcode').value = ''; // Clear input after successful reprint
+      } catch (error) {
+        console.error('Error reprinting label by barcode:', error);
+        alert(`Error reprinting label: ${error.message}. Check console for details.`);
+      }
+    }
+
+    // New function to search books by title/author and display results
+    async function searchAndDisplayBooks() {
+      const query = document.getElementById('searchQuery').value.trim();
+      const searchResultsDiv = document.getElementById('searchResults');
+      searchResultsDiv.innerHTML = ''; // Clear previous results
+
+      if (!query) {
+        alert("Please enter a title or author to search for.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/books/search?query=${encodeURIComponent(query)}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to search books.');
+        }
+
+        const books = await response.json(); // This will be an array of book objects
+
+        if (books.length === 0) {
+          searchResultsDiv.innerHTML = '<p>No books found matching your search.</p>';
+          return;
+        }
+
+        const ul = document.createElement('ul');
+        ul.style.listStyleType = 'none'; // Remove bullet points
+        ul.style.paddingLeft = '0'; // Remove default padding
+
+        books.forEach(book => {
+          const li = document.createElement('li');
+          li.className = 'search-result-item';
+          li.innerHTML = `
+            <div class="search-result-details">
+              <strong>${book.title}</strong>
+              <span>by ${book.author} (Barcode: ${book.barcode})</span>
+              <span>Call No: ${book.call_number}</span>
+            </div>
+            <button onclick="appendLabelFromSearchResult('${book.barcode}', '${book.title.replace(/'/g, "\\'")}', '${book.author.replace(/'/g, "\\'")}', '${book.call_number.replace(/'/g, "\\'")}')">Reprint This</button>
+          `;
+          ul.appendChild(li);
+        });
+        searchResultsDiv.appendChild(ul);
+      } catch (error) {
+        console.error('Error searching for books:', error);
+        searchResultsDiv.innerHTML = `<p style="color: red;">Error searching: ${error.message}</p>`;
+      }
+    }
+
+    // Helper to append a label from search result data
+    function appendLabelFromSearchResult(barcode, title, author, callNumber) {
+      if (labelCount >= 10) {
+        alert("You can only add up to 10 labels per page. Please print or clear existing labels.");
+        return;
+      }
+      // Note: call_number from backend is snake_case, but createLabelElement expects camelCase
+      appendLabelToContainer(title, author, callNumber, barcode);
+    }
+
+    function appendLabelToContainer(title, author, callNumber, qrValue) {
+      const container = document.getElementById('labelContainer');
+      const labelDiv = createLabelElement(title, author, callNumber, qrValue);
+      container.appendChild(labelDiv);
+      labelCount++;
+    }
+
+    function createLabelElement(title, author, callNumber, qrValue) {
+      const labelDiv = document.createElement('div');
+      labelDiv.className = 'label';
+
+      const qrDiv = document.createElement('div');
+      qrDiv.className = 'qrcode';
+
+      const textDiv = document.createElement('div');
+      textDiv.className = 'labelText';
+
+      const titleDiv = document.createElement('div');
+      titleDiv.className = 'line titleLine';
+      titleDiv.textContent = title;
+      titleDiv.title = title;
+
+      const authorDiv = document.createElement('div');
+      authorDiv.className = 'line authorLine';
+      authorDiv.textContent = author;
+      authorDiv.title = author;
+
+      const callNumberDiv = document.createElement('div');
+      callNumberDiv.className = 'line callNumberLine';
+      callNumberDiv.textContent = callNumber;
+      callNumberDiv.title = callNumber;
+
+      textDiv.appendChild(titleDiv);
+      textDiv.appendChild(authorDiv);
+      textDiv.appendChild(callNumberDiv);
+
+      labelDiv.appendChild(qrDiv);
+      labelDiv.appendChild(textDiv);
+
+      // It's important to clear the qrDiv before creating a new QR code
+      // especially if a label element is reused (though not in this current setup)
+      qrDiv.innerHTML = '';
+      new QRCode(qrDiv, {
+        text: qrValue,
+        width: 60,
+        height: 60
+      });
+
+      // Enable editing on click (now also updates backend)
+      labelDiv.addEventListener('click', async () => {
+        const currentTitle = titleDiv.textContent;
+        const currentAuthor = authorDiv.textContent;
+        const currentCall = callNumberDiv.textContent;
+
+        const newTitle = prompt("Edit Book Name:", currentTitle);
+        if (newTitle === null) return; // User cancelled
+
+        const newAuthor = prompt("Edit Author:", currentAuthor);
+        if (newAuthor === null) return; // User cancelled
+
+        const newCall = prompt("Edit Call Number:", currentCall);
+        if (newCall === null) return; // User cancelled
+
+        // Only update if something changed
+        if (newTitle !== currentTitle || newAuthor !== currentAuthor || newCall !== currentCall) {
+          const updateSuccess = await updateBookInLibrarySystem(qrValue, newTitle, newAuthor, newCall);
+          if (updateSuccess) {
+            titleDiv.textContent = newTitle;
+            titleDiv.title = newTitle;
+            authorDiv.textContent = newAuthor;
+            authorDiv.title = newAuthor;
+            callNumberDiv.textContent = newCall;
+            callNumberDiv.title = newCall;
+            alert("Book updated in system!");
+          } else {
+            alert("Failed to update book in system.");
+          }
+        }
+      });
+
+      return labelDiv;
+    }
+
+    function clearLabels() {
+      document.getElementById('labelContainer').innerHTML = '';
+      labelCount = 0;
+    }
+
+    function printLabels() {
+      window.print();
+    }
+
+    async function saveBookToLibrarySystem(barcode, title, author, callNumber) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/books`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            barcode: barcode,
+            title: title,
+            author: author,
+            callNumber: callNumber // Backend expects 'callNumber'
+          }),
+        });
+
+        if (response.status === 409) { // Conflict: barcode already exists
+            alert(`A book with barcode ${barcode} already exists. Please generate another one or reprint existing.`);
+            return false;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to add book.');
+        }
+
+        const data = await response.json();
+        console.log('Book added successfully:', data);
+        alert('Book added to system and label created!');
+        return true;
+      } catch (error) {
+        console.error('Error adding book to library system:', error);
+        alert(`Error adding book to system: ${error.message}. Check console for details.`);
+        return false;
+      }
+    }
+
+    async function updateBookInLibrarySystem(barcode, title, author, callNumber) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            title: title,
+            author: author,
+            callNumber: callNumber
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to update book.');
+        }
+
+        const data = await response.json();
+        console.log('Book updated successfully:', data);
+        return true;
+      } catch (error) {
+        console.error('Error updating book in library system:', error);
+        alert(`Error updating book in system: ${error.message}. Check console for details.`);
+        return false;
+      }
+    }
+
+    // Automatically add label on Enter key press
+    ['bookTitle', 'author', 'callNumber'].forEach(id => {
+      document.getElementById(id).addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          addLabel();
+        }
+      });
+    });
+
+    // Automatically reprint label on Enter key press for reprint barcode field
+    document.getElementById('reprintBarcode').addEventListener('keypress', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        reprintLabelByBarcode();
+      }
+    });
+
+    // Automatically search on Enter key press for search query field
+    document.getElementById('searchQuery').addEventListener('keypress', function (event) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        searchAndDisplayBooks();
+      }
+    });
+
+  </script>
+</body>
+</html>
