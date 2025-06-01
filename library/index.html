@@ -78,16 +78,52 @@
   .admin:hover {
     background-color: rgb(157, 0, 0);
   }
+  #status {
+
+        transition: opacity 1s;
+        text-align: center;
+        padding-bottom: 1em;
+        font-size: 1em
+    }
+
+    .fade-out {
+
+        opacity: 0;
+
+    }
     </style>
 </head>
 <body>
     <h2>Library System</h2>
     <div class="section">
         <h3>Links</h3>
-        <a href="books/" class="button">Books</a>
+        <a href="books" class="button">Books</a>
         <a href="kiosk" class="button">Kiosk</a>
-        <a href="labels/" class="button labels">Labels</a>
-        <a href="admin/" class="button admin">Admin</a>
+        <a href="check-in" class="button labels">Check in</a>
+        <a href="labels" class="button labels">Labels</a>
+        <a href="admin" class="button admin">Admin</a>
     </div>
+    <div id="status">
+        connecting to server...
+    </div>
+
+     <script>
+    fetch("https://pi.tail6e5d07.ts.net/api", { method: "GET", cache: "no-store" })
+      .then(res => {
+        if (res.ok) {
+          const el = document.getElementById("status");
+          el.textContent = "Connected ✅";
+          setTimeout(() => {
+            el.classList.add("fade-out");
+            setTimeout(() => el.style.display = "none", 1000); // match fade duration
+          }, 5000);
+        } else {
+          document.getElementById("status").textContent = "Server error ❌";
+        }
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "Can't connect ❌";
+      });
+  </script>
 </body>
 </html>
