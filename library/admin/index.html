@@ -173,6 +173,19 @@
     padding: 6px;
     box-sizing: border-box;
   }
+  #status {
+
+        transition: opacity 1s;
+        text-align: center;
+        padding-bottom: 1em;
+        font-size: 1.2em;
+    }
+
+    .fade-out {
+
+        opacity: 0;
+
+    }
 
   @media print {
     input, label, button, h2, .section {
@@ -184,9 +197,11 @@
   }
 </style>
 
-  </style>
 </head>
 <body>
+    <div id="status">
+        Connecting...
+    </div>
 
 <h2>📚 Library Barcode System</h2>
 
@@ -297,6 +312,25 @@
 
 <!-- Receipts -->
 <div id="receiptContainer"></div>
+
+ <script>
+    fetch("https://pi.tail6e5d07.ts.net/api", { method: "GET", cache: "no-store" })
+      .then(res => {
+        if (res.ok) {
+          const el = document.getElementById("status");
+          el.textContent = "Connected ✅";
+          setTimeout(() => {
+            el.classList.add("fade-out");
+            setTimeout(() => el.style.display = "none", 1000); // match fade duration
+          }, 5000);
+        } else {
+          document.getElementById("status").textContent = "Server error ❌";
+        }
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "Can't connect ❌";
+      });
+  </script>
 
 
 <script>
