@@ -298,6 +298,7 @@
 <!-- Receipts -->
 <div id="receiptContainer"></div>
 
+
 <script>
   // Global arrays will now be populated from the backend on initial load,
 // and kept somewhat in sync, but the source of truth will be the database.
@@ -346,10 +347,8 @@ async function initializeData() {
 
         console.log("Data initialized from backend.");
         // Call functions to display initial data if needed
-        showCurrentlyCheckedOut();
         showDueTomorrow();
         showOverdue();
-        showAllCheckouts();
         updateCurrentBorrowerDisplay(); // Update display for current borrower if any
     } catch (error) {
         console.error("Error initializing data:", error);
