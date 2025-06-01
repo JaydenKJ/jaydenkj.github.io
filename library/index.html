@@ -1,18 +1,92 @@
-<!DOCTYPE=html>
-<html>
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Library</title>
     <style>
-      a {
-        display: block;
-        font-size: 2em;
-      }
+   body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f7fa;
+    color: #333;
+    margin: 0;
+    padding: 30px;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  h2 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+  }
+
+  h3 {
+    color: #34495e;
+    margin-bottom: 12px;
+    margin-top: 0;
+  }
+  .section {
+    background-color: #fff;
+    padding: 20px 24px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  }
+
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: 500;
+  }
+  .button {
+    margin-top: 12px;
+    margin-right: 8px;
+    padding: 8px 16px;
+    background-color: #2c7be5;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+  }
+
+  .button:hover {
+    background-color: #1a5ec8;
+  }
+  .labels {
+
+    background-color: rgb(37, 106, 37);
+    transition: background-color 0.2s ease;
+  }
+
+  .labels:hover {
+
+    background-color: rgb(19, 72, 19);
+
+  }
+
+  .admin {
+    background-color: red;
+    transition: background-color 0.2s ease;
+  }
+  .admin:hover {
+    background-color: rgb(157, 0, 0);
+  }
     </style>
-  </head>
-  <body>
-    <a href="books/">Books</a>
-    <a href="admin/">Admin</a> 
-    <a href="labels/">Labels</a>
-    <a href="kiosk/">Kiosk</a>
-  </body>
+</head>
+<body>
+    <h2>Library System</h2>
+    <div class="section">
+        <h3>Links</h3>
+        <a href="books/" class="button">Books</a>
+        <a href="Kiosk" class="button">Kiosk</a>
+        <a href="labels/" class="button labels">Labels</a>
+        <a href="admin/" class="button admin">Admin</a>
+    </div>
+</body>
 </html>
