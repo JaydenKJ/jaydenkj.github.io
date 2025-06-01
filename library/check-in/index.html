@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta http-equiv="refresh" content="60">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>📖 Check In a Book</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #e2edf8;
+      color: #333;
+      margin: 0;
+      padding: 30px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .section {
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      color: #2c3e50;
+      font-size: 24px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 500;
+      font-size: 16px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      color: #fff;
+      background-color: #3498db;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+      background-color: #2c80b4;
+    }
+
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 30px;
+      text-decoration: none;
+      color: #3498db;
+      font-size: 16px;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    #status {
+
+        transition: opacity 1s;
+        text-align: center;
+        padding-bottom: 1em;
+        font-size: 1.2em;
+    }
+
+    .fade-out {
+
+        opacity: 0;
+
+    }
+  </style>
+</head>
+<body>
+
+    <div id="status">
+        Connecting...
+    </div>
+
+<div class="section">
+  <h1>Book Check-in</h1>
+
+  <label for="checkinBookBarcode">Scan or Enter Book Barcode:</label>
+  <input type="text" id="checkinBookBarcode" placeholder="e.g., 9781234567890" onkeydown="if(event.key==='Enter') checkInBook()" />
+
+  <button class="btn" onclick="checkInBook()">Check In</button>
+
+  <div id="checkinMessage" class="message"></div>
+</div>
+
+<a href="../" class="back-link">← Back to menu</a>
+
+ <script>
+    fetch("https://pi.tail6e5d07.ts.net/api", { method: "GET", cache: "no-store" })
+      .then(res => {
+        if (res.ok) {
+          const el = document.getElementById("status");
+          el.textContent = "Connected ✅";
+          setTimeout(() => {
+            el.classList.add("fade-out");
+            setTimeout(() => el.style.display = "none", 1000); // match fade duration
+          }, 5000);
+        } else {
+          document.getElementById("status").textContent = "Server error ❌";
+        }
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "Can't connect ❌";
+      });
+  </script>
+
+<script>
+
+let books = {};
+let borrowers = {};
+let checkouts = [];
+let currentBorrowerCode = null;
+
+// Base URL for your backend API
+const API_BASE_URL = 'https://pi.tail6e5d07.ts.net/api';
+
+  async function checkInBook() {
+    const barcode = document.getElementById("checkinBookBarcode").value.trim();
+    const msg = document.getElementById("checkinMessage");
+
+    if (!barcode) {
+        msg.style.color = "red";
+        msg.textContent = "Please enter a barcode.";
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Update local checkouts array
+            const checkedInItem = checkouts.find(c => c.barcode === barcode && !c.checkedIn);
+            if (checkedInItem) {
+                checkedInItem.checkedIn = true;
+            }
+            msg.style.color = "green";
+            msg.textContent = `✅ Book "${result.title}" checked in successfully.`;
+            document.getElementById("checkinBookBarcode").value = "";
+        } else {
+            msg.style.color = "red";
+            msg.textContent = `❌ ${result.message || response.statusText}`;
+        }
+    } catch (error) {
+        console.error("Error checking in book:", error);
+        msg.style.color = "red";
+        msg.textContent = "Network error or server unavailable.";
+    }
+}
+
+</script>
+
+</body>
+</html>
