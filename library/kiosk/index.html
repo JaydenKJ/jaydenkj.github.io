@@ -20,9 +20,8 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      display: block;
+      text-align: center;
       padding: 40px 20px;
     }
 
@@ -34,6 +33,8 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
       padding: 30px;
       position: relative;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     h1 {
@@ -172,10 +173,25 @@
         width: 100%;
       }
     }
+    #status {
+
+        transition: opacity 1s;
+        text-align: center;
+       margin: .5em;
+        font-size: 1.2em;
+    }
+
+    .fade-out {
+
+        opacity: 0;
+
+    }
   </style>
 </head>
 <body>
-
+<div id="status">
+        Connecting...
+    </div>
 <div class="kiosk-container">
   <h1>📚 Self-Checkout</h1>
 
@@ -233,6 +249,25 @@
 
   <audio id="beepSound" src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAgD4AAIA+AAABAAgAZGF0YQAAAAA=" preload="auto"></audio>
 </div>
+
+<script>
+    fetch("https://pi.tail6e5d07.ts.net/api", { method: "GET", cache: "no-store" })
+      .then(res => {
+        if (res.ok) {
+          const el = document.getElementById("status");
+          el.textContent = "Connected ✅";
+          setTimeout(() => {
+            el.classList.add("fade-out");
+            setTimeout(() => el.style.display = "none", 1000); // match fade duration
+          }, 5000);
+        } else {
+          document.getElementById("status").textContent = "Server error ❌";
+        }
+      })
+      .catch(() => {
+        document.getElementById("status").textContent = "Can't connect ❌";
+      });
+  </script>
 
 <script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js"></script>
 
@@ -620,7 +655,7 @@ function resetInactivityTimer() {
     refreshTimeout = setTimeout(async () => {
         await loadAllData();
         location.reload(); // Also reloads page, clearing receipts etc.
-    }, 30000); // 30 seconds
+    }, 300000); // 30 seconds
 }
 ['keydown', 'mousemove', 'mousedown', 'touchstart'].forEach(evt => {
     document.addEventListener(evt, resetInactivityTimer, true);
