@@ -36,10 +36,16 @@
       font-size: 14px;
       border-radius: 4px;
       cursor: pointer;
+      margin-right: 5px; /* Added for spacing between buttons */
     }
 
     button:hover {
       background-color: #1a5ec8;
+    }
+
+    button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
     }
 
     .book-card {
@@ -56,7 +62,7 @@
       font-size: 18px;
     }
 
-    .book-author, .book-callnumber, .book-barcode, .book-status {
+    .book-author, .book-callnumber, .book-barcode, .book-status, .book-hold-info {
       font-size: 14px;
       margin-top: 4px;
     }
@@ -71,18 +77,77 @@
       font-weight: bold;
     }
 
+    .status-on-hold-ready {
+        color: orange;
+        font-weight: bold;
+    }
+
+    .status-on-hold-pending {
+        color: #8c4700; /* Darker orange/brown for pending */
+        font-weight: bold;
+    }
+
     #noResults {
       color: red;
       margin-top: 10px;
     }
+
+    #cardholderSession {
+        background-color: #e0f2f7;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #cce9f2;
+    }
+
+    #cardholderInfo {
+        font-weight: bold;
+        color: #007bb5;
+    }
+
+    #cardholderLogoutBtn {
+        background-color: #e74c3c;
+        color: white;
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+
+    #cardholderLoginSection {
+        margin-bottom: 20px;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        background-color: #f0f0f0;
+    }
+
+    #cardholderLoginSection input {
+        width: calc(100% - 110px); /* Adjust for button width */
+        margin-right: 10px;
+    }
+
   </style>
 </head>
 <body>
   <h1>📚 Search Library Books</h1>
+
+  <div id="cardholderLoginSection">
+    <h2>Cardholder Access</h2>
+    <input type="text" id="borrowerBarcodeInput" placeholder="Enter your card barcode..." />
+    <button onclick="loginCardholder()">Log In</button>
+  </div>
+
+  <div id="cardholderSession" style="display: none;">
+      <span id="cardholderInfo"></span>
+      <button id="cardholderLogoutBtn" onclick="logoutCardholder()">Log Out</button>
+  </div>
+
+
   <input type="text" id="searchTitle" placeholder="Enter book title or author..." onkeydown="if(event.key === 'Enter') searchBooks()" />
   <button onclick="searchBooks()">Search</button>
 
-  <!-- Admin Button -->
   <button id="adminToggleBtn" onclick="toggleAdminMode()" style="position: fixed; top: 20px; right: 20px; background-color: #e74c3c; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer;">Admin</button>
 
   <div id="results"></div>
@@ -92,29 +157,109 @@
 const API_BASE_URL = 'https://pi.tail6e5d07.ts.net/api'; // Make sure this matches your backend's URL
 
 let adminMode = false;
-let books = {}; // Will be populated dynamically from the server
-let checkouts = []; // Will be populated dynamically from the server
+let books = {};
+let checkouts = [];
+let holds = [];
+
+// NEW: Cardholder session variables
+let loggedInBorrower = null; // { barcode: '...', name: '...' }
 
 // --- Initialization Function ---
 async function initializeDataForLookup() {
     try {
-        // Fetch all books (to enable comprehensive search and display)
+        // Fetch all books
         const booksResponse = await fetch(`${API_BASE_URL}/books`);
         if (!booksResponse.ok) throw new Error('Failed to fetch books');
-        books = await booksResponse.json(); // books will be an object { barcode: book_data, ... }
+        books = await booksResponse.json();
 
-        // Fetch all checkouts (to determine book status)
+        // Fetch all checkouts
         const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`);
         if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts');
-        checkouts = await checkoutsResponse.json(); // checkouts will be an array of checkout objects
+        checkouts = await checkoutsResponse.json();
 
-        console.log("Books and checkouts initialized from backend for lookup.");
+        // NEW: Fetch all active holds
+        // IMPORTANT: You need to implement /api/holds/all-active on your backend
+        const allHoldsResponse = await fetch(`${API_BASE_URL}/holds/all-active`);
+        if (allHoldsResponse.ok) {
+            holds = await allHoldsResponse.json();
+        } else {
+            console.warn("Could not fetch all active holds. Ensure /api/holds/all-active endpoint exists on backend.");
+            holds = [];
+        }
+
+        // Check for existing session on load
+        checkCardholderSession();
+
+        console.log("Books, checkouts, and holds initialized from backend for lookup.");
         searchBooks(); // Perform an initial search to display all books
     } catch (error) {
         console.error("Error initializing data for lookup:", error);
-        alert("Failed to load library data from the server. Please check the backend connection.");
+        alert("Failed to load library data from the server. Please check the backend connection and ensure all necessary endpoints are working.");
     }
 }
+
+// --- Cardholder Login/Logout ---
+async function loginCardholder() {
+    const barcodeInput = document.getElementById('borrowerBarcodeInput');
+    const borrowerBarcode = barcodeInput.value.trim();
+
+    if (!borrowerBarcode) {
+        alert("Please enter your card barcode.");
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/borrowers/${borrowerBarcode}`);
+        if (!response.ok) {
+            alert("Borrower not found. Please check your barcode.");
+            return;
+        }
+        const borrower = await response.json();
+        loggedInBorrower = { barcode: borrower.barcode, name: borrower.name };
+        sessionStorage.setItem('loggedInBorrower', JSON.stringify(loggedInBorrower)); // Store in session storage
+        updateCardholderUI();
+        searchBooks(); // Re-render books to show hold buttons
+        alert(`Welcome, ${borrower.name}!`);
+    } catch (error) {
+        console.error("Error logging in cardholder:", error);
+        alert("Error logging in. Please try again.");
+    }
+}
+
+function logoutCardholder() {
+    loggedInBorrower = null;
+    sessionStorage.removeItem('loggedInBorrower'); // Clear from session storage
+    updateCardholderUI();
+    searchBooks(); // Re-render books to hide hold buttons
+    alert("You have been logged out.");
+}
+
+function checkCardholderSession() {
+    const storedBorrower = sessionStorage.getItem('loggedInBorrower');
+    if (storedBorrower) {
+        loggedInBorrower = JSON.parse(storedBorrower);
+    }
+    updateCardholderUI();
+}
+
+function updateCardholderUI() {
+    const loginSection = document.getElementById('cardholderLoginSection');
+    const sessionSection = document.getElementById('cardholderSession');
+    const cardholderInfoSpan = document.getElementById('cardholderInfo');
+    const barcodeInput = document.getElementById('borrowerBarcodeInput');
+
+    if (loggedInBorrower) {
+        loginSection.style.display = 'none';
+        sessionSection.style.display = 'flex';
+        cardholderInfoSpan.textContent = `Logged in as: ${loggedInBorrower.name}`;
+        barcodeInput.value = ''; // Clear input after login
+    } else {
+        loginSection.style.display = 'block';
+        sessionSection.style.display = 'none';
+        cardholderInfoSpan.textContent = '';
+    }
+}
+
 
 // --- Admin Mode Toggling ---
 function toggleAdminMode() {
@@ -124,6 +269,7 @@ function toggleAdminMode() {
             adminMode = true;
             alert("Admin mode enabled.");
             document.getElementById("adminToggleBtn").style.backgroundColor = "#27ae60";
+            logoutCardholder(); // Admin mode implies no cardholder session
         } else {
             alert("Incorrect code.");
         }
@@ -135,7 +281,7 @@ function toggleAdminMode() {
     searchBooks(); // Re-render results based on admin mode
 }
 
-// --- Search Function (Modified for Backend Interaction) ---
+// --- Search Function (Modified for Backend Interaction and Holds) ---
 async function searchBooks() {
     const query = document.getElementById("searchTitle").value.trim().toLowerCase();
     const resultsDiv = document.getElementById("results");
@@ -151,42 +297,92 @@ async function searchBooks() {
             const allBooksData = await response.json();
             matches = Object.entries(allBooksData).map(([barcode, book]) => ({ barcode, book }))
                 .sort((a, b) => a.book.title.localeCompare(b.book.title));
-            // Update local 'books' object for consistency
             books = allBooksData;
 
         } else {
-            // For a specific query, we'll use a backend search endpoint
-            // Assuming your backend supports search by title or author
+            // For a specific query, use backend search endpoint
             const response = await fetch(`${API_BASE_URL}/books/search?query=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Failed to search books');
             const searchResults = await response.json();
 
-            // The backend search function might return exact matches or fuzzy,
-            // for now, we'll just display what the backend gives us.
-            // If backend search is exact, you might re-implement client-side fuzzy search if desired.
             if (searchResults.length === 0) {
                 resultsDiv.innerHTML = `<p id="noResults">No books found matching "${query}".</p>`;
                 return;
             }
-
             matches = searchResults.map(book => ({ barcode: book.barcode, book }));
-            // Note: We're not calculating similarityScore on the client-side anymore
-            // because the backend should handle the search logic.
-            // If you want client-side fuzzy matching, you'd need to fetch all books
-            // and then filter locally as before, but this is less efficient for large datasets.
         }
 
-        // Re-fetch checkouts to ensure the most up-to-date status
+        // Re-fetch checkouts and holds to ensure the most up-to-date status
         const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`);
         if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts for status update');
         checkouts = await checkoutsResponse.json();
 
-        matches.forEach(({ book, barcode }) => {
-            // Find active checkout for this book
+        // Re-fetch all active holds for display accuracy
+        const allHoldsResponse = await fetch(`${API_BASE_URL}/holds/all-active`);
+        if (allHoldsResponse.ok) {
+            holds = await allHoldsResponse.json();
+        } else {
+            console.warn("Could not fetch all active holds. Ensure /api/holds/all-active endpoint exists on backend.");
+            holds = [];
+        }
+
+
+        for (const { book, barcode } of matches) {
             const activeCheckout = checkouts.find(c => c.barcode === barcode && !c.checkedIn);
-            let statusHTML = activeCheckout ?
-                `<div class="book-status status-checked-out">❌ Checked Out by ${activeCheckout.name} (Due: ${formatDate(activeCheckout.dueDate)})</div>` :
-                `<div class="book-status status-checked-in">✅ Checked In</div>`;
+            const bookHolds = holds.filter(h => h.bookBarcode === barcode && (h.status === 'PENDING' || h.status === 'READY_FOR_PICKUP'))
+                                    .sort((a, b) => new Date(a.holdPlacedDate) - new Date(b.holdPlacedDate)); // Oldest hold first
+
+            let statusHTML = '';
+            let holdInfoHTML = '';
+            let placeHoldButtonHTML = '';
+            let canPlaceHold = false;
+            let currentBorrowerHasBook = false;
+            let currentBorrowerHasHold = false;
+
+            if (loggedInBorrower) {
+                // Check if the logged-in borrower has this book checked out
+                currentBorrowerHasBook = checkouts.some(c => c.barcode === barcode && !c.checkedIn && c.borrowerCode === loggedInBorrower.barcode);
+                // Check if the logged-in borrower already has an active hold on this book
+                currentBorrowerHasHold = holds.some(h => h.bookBarcode === barcode && h.borrowerBarcode === loggedInBorrower.barcode && (h.status === 'PENDING' || h.status === 'READY_FOR_PICKUP'));
+
+                canPlaceHold = !currentBorrowerHasBook && !currentBorrowerHasHold;
+
+                placeHoldButtonHTML = `<button onclick="placeHold('${barcode}')" ${canPlaceHold ? '' : 'disabled'}>
+                                         ${currentBorrowerHasBook ? 'Already Checked Out by You' : (currentBorrowerHasHold ? 'Hold Already Placed' : 'Place Hold')}
+                                       </button>`;
+            }
+
+
+            if (activeCheckout) {
+                // Book is checked out
+                statusHTML = `<div class="book-status status-checked-out">❌ Checked Out by ${activeCheckout.name} (Due: ${formatDate(activeCheckout.dueDate)})</div>`;
+                if (bookHolds.length > 0) {
+                    // There's a pending hold on a checked-out book
+                    holdInfoHTML = `<div class="book-hold-info status-on-hold-pending">
+                                        ⏳ On Hold for ${bookHolds[0].borrowerName} (Queue: ${bookHolds.length} total)
+                                    </div>`;
+                }
+            } else {
+                // Book is checked in
+                if (bookHolds.length > 0 && bookHolds[0].status === 'READY_FOR_PICKUP') {
+                    const readyHold = bookHolds[0];
+                    const daysLeft = calculateDaysLeft(readyHold.expiresDate);
+                    statusHTML = `<div class="book-status status-on-hold-ready">
+                                        ⚠️ ON HOLD for ${readyHold.borrowerName} (${daysLeft} day(s) left to pick up)
+                                    </div>`;
+                } else if (bookHolds.length > 0 && bookHolds[0].status === 'PENDING') {
+                    // This scenario means the book is available, but the first hold is 'PENDING'.
+                    // This implies the check-in process didn't automatically make it 'READY_FOR_PICKUP'.
+                    // It's less common if checkin handles it, but handles cases like manual data entry.
+                    statusHTML = `<div class="book-status status-on-hold-pending">
+                                        ⏳ On Hold (Pending availability) for ${bookHolds[0].borrowerName}
+                                    </div>`;
+                } else {
+                    // Book is checked in and not on active hold
+                    statusHTML = `<div class="book-status status-checked-in">✅ Checked In</div>`;
+                }
+            }
+
 
             const bookCard = document.createElement("div");
             bookCard.className = "book-card";
@@ -199,20 +395,23 @@ async function searchBooks() {
                     <div><strong>Call Number:</strong> <input value="${book.call_number}" onchange="updateBook('${barcode}', 'callNumber', this.value)" /></div>
                     <div><strong>Barcode:</strong> <input value="${barcode}" onchange="changeBarcode('${barcode}', this.value)" /></div>
                     ${statusHTML}
+                    ${holdInfoHTML}
                     <button onclick="deleteBook('${barcode}')" style="margin-top: 10px; background-color: #c0392b; color: white; padding: 6px 10px; border: none; border-radius: 4px;">Delete Book</button>
                 `;
             } else {
                 bookCard.innerHTML = `
                     <div class="book-title">${book.title}</div>
                     <div class="book-author"><strong>Author:</strong> ${book.author}</div>
-                    <div class="book-call_number"><strong>Call Number:</strong> ${book.call_number}</div>
+                    <div class="book-callnumber"><strong>Call Number:</strong> ${book.call_number}</div>
                     <div class="book-barcode"><strong>Barcode:</strong> ${barcode}</div>
                     ${statusHTML}
+                    ${holdInfoHTML}
+                    ${loggedInBorrower ? placeHoldButtonHTML : ''}
                 `;
             }
 
             resultsDiv.appendChild(bookCard);
-        });
+        }
 
     } catch (error) {
         console.error("Error searching books:", error);
@@ -220,11 +419,46 @@ async function searchBooks() {
     }
 }
 
+// --- Place Hold Function ---
+async function placeHold(bookBarcode) {
+    if (!loggedInBorrower) {
+        alert("Please log in with your card barcode to place a hold.");
+        return;
+    }
+
+    if (!confirm(`Are you sure you want to place a hold on "${books[bookBarcode].title}"?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/holds`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bookBarcode: bookBarcode,
+                borrowerBarcode: loggedInBorrower.barcode
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(`✅ Hold placed successfully! ${result.message}`);
+            searchBooks(); // Re-render the list to update hold status and button state
+        } else {
+            alert(`❌ Error placing hold: ${result.message || response.statusText}`);
+        }
+    } catch (error) {
+        console.error("Error placing hold:", error);
+        alert("Network error or server unavailable during hold placement.");
+    }
+}
+
+
 // --- Admin Mode Actions (Modified for Backend Interaction) ---
 async function updateBook(barcode, field, value) {
     try {
-        const payload = { [field]: value }; // Construct payload for the specific field
-        // If the field is title, author, or callNumber, use the existing PUT /api/books/:barcode endpoint
+        const payload = { [field]: value };
         const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
@@ -235,11 +469,9 @@ async function updateBook(barcode, field, value) {
 
         if (response.ok) {
             alert(`✅ Book "${field}" updated!`);
-            // Optimistically update local 'books' cache
             if (books[barcode]) {
                 books[barcode][field] = value;
             }
-            // Re-run search to refresh display (especially if field is title/author for sorting)
             searchBooks();
         } else {
             alert(`❌ Error updating book: ${result.message || response.statusText}`);
@@ -253,7 +485,7 @@ async function updateBook(barcode, field, value) {
 async function changeBarcode(oldBarcode, newBarcode) {
     if (!newBarcode || newBarcode.trim() === '') {
         alert("New barcode cannot be empty.");
-        searchBooks(); // Revert display
+        searchBooks();
         return;
     }
     if (newBarcode === oldBarcode) {
@@ -262,15 +494,14 @@ async function changeBarcode(oldBarcode, newBarcode) {
     }
 
     try {
-        // Use the existing PUT /api/books/:barcode endpoint, sending newBarcode in body
         const response = await fetch(`${API_BASE_URL}/books/${oldBarcode}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 newBarcode: newBarcode,
-                title: books[oldBarcode].title, // Send existing values to avoid partial updates
+                title: books[oldBarcode].title,
                 author: books[oldBarcode].author,
-                call_number: books[oldBarcode].call_number
+                callNumber: books[oldBarcode].call_number
             })
         });
 
@@ -278,20 +509,19 @@ async function changeBarcode(oldBarcode, newBarcode) {
 
         if (response.ok) {
             alert("✅ Barcode changed successfully!");
-            // Update local 'books' cache
             if (books[oldBarcode]) {
                 books[newBarcode] = { ...books[oldBarcode], barcode: newBarcode };
                 delete books[oldBarcode];
             }
-            searchBooks(); // Re-run search to refresh display
+            searchBooks();
         } else {
             alert(`❌ Error changing barcode: ${result.message || response.statusText}`);
-            searchBooks(); // Revert display if there was an error
+            searchBooks();
         }
     } catch (error) {
         console.error("Error changing barcode:", error);
         alert("Network error or server unavailable during barcode change.");
-        searchBooks(); // Revert display
+        searchBooks();
     }
 }
 
@@ -306,8 +536,8 @@ async function deleteBook(barcode) {
 
             if (response.ok) {
                 alert(`✅ Book "${barcode}" deleted successfully!`);
-                delete books[barcode]; // Optimistically update local cache
-                searchBooks(); // Re-render results
+                delete books[barcode];
+                searchBooks();
             } else {
                 alert(`❌ Error deleting book: ${result.message || response.statusText}`);
             }
@@ -318,8 +548,7 @@ async function deleteBook(barcode) {
     }
 }
 
-// --- Utility Functions (mostly unchanged, added comments for date conversion) ---
-
+// --- Utility Functions (unchanged) ---
 function levenshtein(a, b) {
     const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
     for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
@@ -340,24 +569,29 @@ function normalize(text) {
 }
 
 function similarityScore(a, b) {
-    // This client-side fuzzy logic is commented out because the backend now handles search.
-    // If you need fuzzy search on the client, you'd fetch all books first.
-    // However, for large datasets, this is inefficient. It's better done on the backend.
     const normA = normalize(a);
     const normB = normalize(b);
     const dist = levenshtein(normA, normB);
     return 1 - dist / Math.max(normA.length, normB.length);
 }
 
-
 function formatDate(dateStr) {
-    // Backend returns ISO strings, convert them to Date objects for formatting
     const d = new Date(dateStr);
-    if (isNaN(d.getTime())) { // Use getTime() for robust Date object validation
+    if (isNaN(d.getTime())) {
         console.warn("Invalid date string provided to formatDate:", dateStr);
         return "Invalid Date";
     }
     return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+}
+
+function calculateDaysLeft(expiresDateStr) {
+    const expiresDate = new Date(expiresDateStr);
+    const now = new Date();
+    expiresDate.setHours(0, 0, 0, 0);
+    now.setHours(0, 0, 0, 0);
+    const diffTime = expiresDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Math.max(0, diffDays);
 }
 
 // --- Idle Timer (unchanged) ---
@@ -365,8 +599,8 @@ let idleTimer;
 function resetIdleTimer() {
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => {
-        location.reload();
-    }, 100000000); // 10 seconds for testing, adjust as needed
+        // location.reload(); // Re-enable if you want a full refresh on idle
+    }, 100000000); // Very long time, effectively disabled
 }
 ['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(event => {
     document.addEventListener(event, resetIdleTimer);
@@ -374,7 +608,7 @@ function resetIdleTimer() {
 resetIdleTimer();
 
 // --- Initial Load ---
-window.onload = initializeDataForLookup; // Call the async initializer on page load
+window.onload = initializeDataForLookup;
   </script>
 </body>
 </html>
