@@ -109,7 +109,12 @@
     <div id="status">
         connecting to server...
     </div>
+    <script>
+        if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/library/sw.js");
+}
 
+    </script>
      <script>
     fetch("https://pi.tail6e5d07.ts.net/api", { method: "GET", cache: "no-store" })
       .then(res => {
