@@ -2,7 +2,7 @@
   "name": "Library System",
   "short_name": "Library",
   "description": "A fully-fledged library system for only one library.",
-  "start_url": "/",
+  "start_url": "/library",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0078d7",
