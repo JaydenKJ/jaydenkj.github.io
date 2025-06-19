@@ -1,0 +1,39 @@
+{
+  "name": "Library System",
+  "short_name": "Library",
+  "description": "A fully-fledged library system for only one library.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0078d7",
+  "icons": [
+    {
+      "src": "android/192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "android/512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "android/1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    },
+    {
+      "src": "windows11/256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "ios/180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+    // Add more if you wish, e.g. 32x32, 48x48, 72x72, etc.
+  ]
+}
