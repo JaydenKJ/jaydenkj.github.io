@@ -251,7 +251,7 @@
 </div>
 
 <script>
-    fetch("https://bold-filly-noble.ngrok-free.app/api", { method: "GET", cache: "no-store" })
+    fetch("https://bold-filly-noble.ngrok-free.app/api", {headers: API_HEADERS}, { method: "GET", cache: "no-store" })
       .then(res => {
         if (res.ok) {
           const el = document.getElementById("status");
@@ -274,6 +274,7 @@
 <script>
   // Server API Base URL
 const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api'; // Make sure this matches your server's port
+const API_HEADERS = {"ngrok-skip-browser-warning": "true"};
 
 let borrowers = {}; // Will be loaded from the server
 let books = {};     // Will be loaded from the server
@@ -290,7 +291,7 @@ let checkoutFromCamera = false;
 // --- Helper Function to Fetch Data ---
 async function fetchData(endpoint) {
     try {
-        const response = await fetch(`${API_BASE_URL}/${endpoint}`);
+        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {headers: API_HEADERS});
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -345,7 +346,7 @@ async function confirmBorrower() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/borrowers/${input}`);
+        const response = await fetch(`${API_BASE_URL}/borrowers/${input}`, {headers: API_HEADERS});
         if (!response.ok) {
             // Check if it's a 404 (Borrower not found)
             if (response.status === 404) {
@@ -411,7 +412,7 @@ async function checkoutBook(bookCode = null) {
 
     try {
         // First, check if the book exists and is available using the server API
-        const bookResponse = await fetch(`${API_BASE_URL}/books/${bookCode}`);
+        const bookResponse = await fetch(`${API_BASE_URL}/books/${bookCode}`, {headers: API_HEADERS});
         if (!bookResponse.ok) {
             if (bookResponse.status === 404) {
                 msg.textContent = "❌ Book not found. Please ask an associate for more information.";
@@ -425,7 +426,7 @@ async function checkoutBook(bookCode = null) {
         const book = await bookResponse.json(); // Get book details from server
 
         // Then, attempt to create the checkout
-        const checkoutResponse = await fetch(`${API_BASE_URL}/checkouts`, {
+        const checkoutResponse = await fetch(`${API_BASE_URL}/checkouts`, {headers: API_HEADERS}, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -483,7 +484,7 @@ async function loadAdminCheckouts() {
     container.innerHTML = "Loading checkouts...";
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/current`);
+        const response = await fetch(`${API_BASE_URL}/checkouts/current`, {headers: API_HEADERS});
         if (!response.ok) {
             throw new Error(`Server error: ${response.status} ${response.statusText}`);
         }
@@ -523,7 +524,7 @@ async function checkInBook(bookBarcode) { // Renamed from removeCheckout to be m
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {
+        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {headers: API_HEADERS}, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
