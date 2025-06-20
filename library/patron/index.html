@@ -123,7 +123,7 @@
   </div>
 
   <script>
-    fetch("https://pi.tail6e5d07.ts.net/api", { method: "GET", cache: "no-store" })
+    fetch("https://bold-filly-noble.ngrok-free.app/api", { method: "GET", cache: "no-store" })
       .then(res => {
         if (res.ok) {
           const el = document.getElementById("status");
@@ -164,7 +164,7 @@ async function lookupAccount() { // Made async to use await with fetch
 
     try {
         // Fetch current checkouts from your API, filtered by borrowerCode
-        const response = await fetch(`https://pi.tail6e5d07.ts.net/api/checkouts/current?borrowerCode=${encodeURIComponent(cardNumber)}`);
+        const response = await fetch(`https://bold-filly-noble.ngrok-free.app/api/checkouts/current?borrowerCode=${encodeURIComponent(cardNumber)}`);
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -207,7 +207,7 @@ async function renewBook(checkoutId) {
     msgBox.style.display = "none"; // Hide previous messages
 
     try {
-        const response = await fetch(`https://pi.tail6e5d07.ts.net/api/checkouts/renew/${checkoutId}`, {
+        const response = await fetch(`https://bold-filly-noble.ngrok-free.app/api/checkouts/renew/${checkoutId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
