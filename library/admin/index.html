@@ -334,6 +334,8 @@
 
 
 <script>
+
+  
   // Global arrays will now be populated from the backend on initial load,
 // and kept somewhat in sync, but the source of truth will be the database.
 let books = {};
@@ -342,7 +344,12 @@ let checkouts = [];
 let currentBorrowerCode = null;
 
 // Base URL for your backend API
-const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api'; // Assuming your backend runs on port 3000
+const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api';
+  
+  
+  const API_HEADERS = {
+  "ngrok-skip-browser-warning": "true"
+};// Assuming your backend runs on port 3000
 
 // --- Utility Functions (unchanged, or slightly modified for async) ---
 
@@ -364,9 +371,9 @@ function getDueDateObject(daysAhead) {
 async function initializeData() {
     try {
         const [booksRes, borrowersRes, checkoutsRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/books`),
-            fetch(`${API_BASE_URL}/borrowers`),
-            fetch(`${API_BASE_URL}/checkouts/all`) // Fetch all checkouts initially
+            fetch(`${API_BASE_URL}/books`, {headers: API_HEADERS}),
+            fetch(`${API_BASE_URL}/borrowers`, {headers: API_HEADERS}),
+            fetch(`${API_BASE_URL}/checkouts/all`, {headers: API_HEADERS}) // Fetch all checkouts initially
         ]);
 
         books = await booksRes.json();
@@ -410,7 +417,7 @@ async function saveBook() {
     try {
         const response = await fetch(`${API_BASE_URL}/books`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', "ngrok-skip-browser-warning": "true" },
             body: JSON.stringify({ barcode, title, author, callNumber })
         });
 
@@ -444,7 +451,7 @@ async function saveBook() {
 
 async function updateBook(barcode, title, author, call_number) {
     try {
-        const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+        const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {headers: API_HEADERS}, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ title, author, call_number })
@@ -475,7 +482,7 @@ async function saveBorrower() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/borrowers`, {
+        const response = await fetch(`${API_BASE_URL}/borrowers`, {headers: API_HEADERS}, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ barcode, name })
@@ -503,7 +510,7 @@ async function confirmBorrower() {
     const msg = document.getElementById("borrowerMessage");
 
     try {
-        const response = await fetch(`${API_BASE_URL}/borrowers/${barcode}`);
+        const response = await fetch(`${API_BASE_URL}/borrowers/${barcode}`, {headers: API_HEADERS});
         const borrowerData = await response.json();
 
         if (response.ok) {
@@ -558,7 +565,7 @@ async function createReceipt() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts`, {
+        const response = await fetch(`${API_BASE_URL}/checkouts`, {headers: API_HEADERS}, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -627,7 +634,7 @@ async function showDueTomorrow() {
     dueList.textContent = "";
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/due/tomorrow`);
+        const response = await fetch(`${API_BASE_URL}/checkouts/due/tomorrow`, {headers: API_HEADERS});
         const dueTomorrowBooks = await response.json();
 
         if (dueTomorrowBooks.length === 0) {
@@ -651,7 +658,7 @@ async function showOverdue() {
     overdueList.textContent = "";
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/overdue`);
+        const response = await fetch(`${API_BASE_URL}/checkouts/overdue`, {headers: API_HEADERS});
         const overdueBooks = await response.json();
 
         if (overdueBooks.length === 0) {
@@ -681,7 +688,7 @@ async function checkInBook() {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {
+        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {headers: API_HEADERS}, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ barcode })
@@ -725,12 +732,12 @@ async function lookupBookStatus() {
 
     try {
         if (barcodeInput) {
-            const response = await fetch(`${API_BASE_URL}/books/${barcodeInput}`);
+            const response = await fetch(`${API_BASE_URL}/books/${barcodeInput}`, {headers: API_HEADERS});
             if (response.ok) {
                 bookToLookup = await response.json();
             }
         } else if (titleInput) {
-            const response = await fetch(`${API_BASE_URL}/books/search?title=${encodeURIComponent(titleInput)}`);
+            const response = await fetch(`${API_BASE_URL}/books/search?title=${encodeURIComponent(titleInput)}`, {headers: API_HEADERS});
             const searchResults = await response.json();
             if (searchResults.length > 0) {
                 // For simplicity, take the first match. In a real app, you might show a list.
@@ -777,7 +784,7 @@ async function saveBookEdits(originalBarcode) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/books/${originalBarcode}`, {
+        const response = await fetch(`${API_BASE_URL}/books/${originalBarcode}`, {headers: API_HEADERS}, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -838,7 +845,7 @@ async function showCurrentlyCheckedOut() {
     checkedOutList.textContent = ""; // Clear previous content
 
     try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/current`);
+        const response = await fetch(`${API_BASE_URL}/checkouts/current`, {headers: API_HEADERS});
         const currentlyOut = await response.json();
 
         if (currentlyOut.length === 0) {
@@ -862,7 +869,7 @@ async function showCurrentlyCheckedOut() {
 // For export, the backend will generate the JSON
 async function exportLibraryData() {
     try {
-        const response = await fetch(`${API_BASE_URL}/export-data`);
+        const response = await fetch(`${API_BASE_URL}/export-data`, {headers: API_HEADERS});
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -899,7 +906,7 @@ async function importLibraryData() {
     formData.append('file', file);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/import-data`, {
+        const response = await fetch(`${API_BASE_URL}/import-data`, {headers: API_HEADERS}, {
             method: 'POST',
             body: formData // No Content-Type header needed; fetch sets it for FormData
         });
