@@ -399,10 +399,11 @@ document.addEventListener('DOMContentLoaded', initializeData);
 
 // --- Modified Functions to interact with Backend ---
 function cleanExpiredHolds() {
-  fetch('/api/holds/clean-expired', {
+  fetch(`${API_BASE_URL}/holds/clean-expired`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
+      "ngrok-skip-browser-warning": "true"
     }
   })
   .then(res => res.json())
