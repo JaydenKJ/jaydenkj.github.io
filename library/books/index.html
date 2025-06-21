@@ -152,465 +152,474 @@
 
   <div id="results"></div>
 
-  <script>
-
-const API_HEADERS = {"ngrok-skip-browser-warning": "true"};
+ <script>
+    const API_HEADERS = {"ngrok-skip-browser-warning": "true"};
     // Base URL for your backend API
-const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api'; // Make sure this matches your backend's URL
+    const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api'; // Make sure this matches your backend's URL
 
-let adminMode = false;
-let books = {};
-let checkouts = [];
-let holds = [];
+    let adminMode = false;
+    let books = {};
+    let checkouts = [];
+    let holds = [];
 
-// NEW: Cardholder session variables
-let loggedInBorrower = null; // { barcode: '...', name: '...' }
+    // NEW: Cardholder session variables
+    let loggedInBorrower = null; // { barcode: '...', name: '...' }
 
-// --- Initialization Function ---
-async function initializeDataForLookup() {
-    try {
-        // Fetch all books
-        const booksResponse = await fetch(`${API_BASE_URL}/books`, {headers: API_HEADERS});
-        if (!booksResponse.ok) throw new Error('Failed to fetch books');
-        books = await booksResponse.json();
+    // --- Initialization Function ---
+    async function initializeDataForLookup() {
+        try {
+            // Fetch all books
+            const booksResponse = await fetch(`${API_BASE_URL}/books`, {headers: API_HEADERS});
+            if (!booksResponse.ok) throw new Error('Failed to fetch books');
+            books = await booksResponse.json();
 
-        // Fetch all checkouts
-        const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`, {headers: API_HEADERS});
-        if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts');
-        checkouts = await checkoutsResponse.json();
+            // Fetch all checkouts
+            const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`, {headers: API_HEADERS});
+            if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts');
+            checkouts = await checkoutsResponse.json();
 
-        // NEW: Fetch all active holds
-        // IMPORTANT: You need to implement /api/holds/all-active on your backend
-        const allHoldsResponse = await fetch(`${API_BASE_URL}/holds/all-active`, {headers: API_HEADERS});
-        if (allHoldsResponse.ok) {
-            holds = await allHoldsResponse.json();
-        } else {
-            console.warn("Could not fetch all active holds. Ensure /api/holds/all-active endpoint exists on backend.");
-            holds = [];
+            // NEW: Fetch all active holds
+            // IMPORTANT: You need to implement /api/holds/all-active on your backend
+            const allHoldsResponse = await fetch(`${API_BASE_URL}/holds/all-active`, {headers: API_HEADERS});
+            if (allHoldsResponse.ok) {
+                holds = await allHoldsResponse.json();
+            } else {
+                console.warn("Could not fetch all active holds. Ensure /api/holds/all-active endpoint exists on backend.");
+                holds = [];
+            }
+
+            // Check for existing session on load
+            checkCardholderSession();
+
+            console.log("Books, checkouts, and holds initialized from backend for lookup.");
+            searchBooks(); // Perform an initial search to display all books
+        } catch (error) {
+            console.error("Error initializing data for lookup:", error);
+            alert("Failed to load library data from the server. Please check the backend connection and ensure all necessary endpoints are working.");
         }
-
-        // Check for existing session on load
-        checkCardholderSession();
-
-        console.log("Books, checkouts, and holds initialized from backend for lookup.");
-        searchBooks(); // Perform an initial search to display all books
-    } catch (error) {
-        console.error("Error initializing data for lookup:", error);
-        alert("Failed to load library data from the server. Please check the backend connection and ensure all necessary endpoints are working.");
-    }
-}
-
-// --- Cardholder Login/Logout ---
-async function loginCardholder() {
-    const barcodeInput = document.getElementById('borrowerBarcodeInput');
-    const borrowerBarcode = barcodeInput.value.trim();
-
-    if (!borrowerBarcode) {
-        alert("Please enter your card barcode.");
-        return;
     }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/borrowers/${borrowerBarcode}`, {headers: API_HEADERS});
-        if (!response.ok) {
-            alert("Borrower not found. Please check your barcode.");
+    // --- Cardholder Login/Logout ---
+    async function loginCardholder() {
+        const barcodeInput = document.getElementById('borrowerBarcodeInput');
+        const borrowerBarcode = barcodeInput.value.trim();
+
+        if (!borrowerBarcode) {
+            alert("Please enter your card barcode.");
             return;
         }
-        const borrower = await response.json();
-        loggedInBorrower = { barcode: borrower.barcode, name: borrower.name };
-        sessionStorage.setItem('loggedInBorrower', JSON.stringify(loggedInBorrower)); // Store in session storage
-        updateCardholderUI();
-        searchBooks(); // Re-render books to show hold buttons
-        alert(`Welcome, ${borrower.name}!`);
-    } catch (error) {
-        console.error("Error logging in cardholder:", error);
-        alert("Error logging in. Please try again.");
-    }
-}
 
-function logoutCardholder() {
-    loggedInBorrower = null;
-    sessionStorage.removeItem('loggedInBorrower'); // Clear from session storage
-    updateCardholderUI();
-    searchBooks(); // Re-render books to hide hold buttons
-    alert("You have been logged out.");
-}
-
-function checkCardholderSession() {
-    const storedBorrower = sessionStorage.getItem('loggedInBorrower');
-    if (storedBorrower) {
-        loggedInBorrower = JSON.parse(storedBorrower);
-    }
-    updateCardholderUI();
-}
-
-function updateCardholderUI() {
-    const loginSection = document.getElementById('cardholderLoginSection');
-    const sessionSection = document.getElementById('cardholderSession');
-    const cardholderInfoSpan = document.getElementById('cardholderInfo');
-    const barcodeInput = document.getElementById('borrowerBarcodeInput');
-
-    if (loggedInBorrower) {
-        loginSection.style.display = 'none';
-        sessionSection.style.display = 'flex';
-        cardholderInfoSpan.textContent = `Logged in as: ${loggedInBorrower.name}`;
-        barcodeInput.value = ''; // Clear input after login
-    } else {
-        loginSection.style.display = 'block';
-        sessionSection.style.display = 'none';
-        cardholderInfoSpan.textContent = '';
-    }
-}
-
-
-// --- Admin Mode Toggling ---
-function toggleAdminMode() {
-    if (!adminMode) {
-        const code = prompt("Enter admin code:");
-        if (code === "42") {
-            adminMode = true;
-            alert("Admin mode enabled.");
-            document.getElementById("adminToggleBtn").style.backgroundColor = "#27ae60";
-            logoutCardholder(); // Admin mode implies no cardholder session
-        } else {
-            alert("Incorrect code.");
-        }
-    } else {
-        adminMode = false;
-        alert("Admin mode disabled.");
-        document.getElementById("adminToggleBtn").style.backgroundColor = "#e74c3c";
-    }
-    searchBooks(); // Re-render results based on admin mode
-}
-
-// --- Search Function (Modified for Backend Interaction and Holds) ---
-async function searchBooks() {
-    const query = document.getElementById("searchTitle").value.trim().toLowerCase();
-    const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = ""; // Clear previous results
-
-    let matches = [];
-
-    try {
-        if (!query) {
-            // If query is empty, fetch all books from the backend
-            const response = await fetch(`${API_BASE_URL}/books`, {headers: API_HEADERS});
-            if (!response.ok) throw new Error('Failed to fetch all books');
-            const allBooksData = await response.json();
-            matches = Object.entries(allBooksData).map(([barcode, book]) => ({ barcode, book }))
-                .sort((a, b) => a.book.title.localeCompare(b.book.title));
-            books = allBooksData;
-
-        } else {
-            // For a specific query, use backend search endpoint
-            const response = await fetch(`${API_BASE_URL}/books/search?query=${encodeURIComponent(query)}`, {headers: API_HEADERS});
-            if (!response.ok) throw new Error('Failed to search books');
-            const searchResults = await response.json();
-
-            if (searchResults.length === 0) {
-                resultsDiv.innerHTML = `<p id="noResults">No books found matching "${query}".</p>`;
+        try {
+            const response = await fetch(`${API_BASE_URL}/borrowers/${borrowerBarcode}`, {headers: API_HEADERS});
+            if (!response.ok) {
+                alert("Borrower not found. Please check your barcode.");
                 return;
             }
-            matches = searchResults.map(book => ({ barcode: book.barcode, book }));
+            const borrower = await response.json();
+            loggedInBorrower = { barcode: borrower.barcode, name: borrower.name };
+            sessionStorage.setItem('loggedInBorrower', JSON.stringify(loggedInBorrower)); // Store in session storage
+            updateCardholderUI();
+            searchBooks(); // Re-render books to show hold buttons
+            alert(`Welcome, ${borrower.name}!`);
+        } catch (error) {
+            console.error("Error logging in cardholder:", error);
+            alert("Error logging in. Please try again.");
         }
+    }
 
-        // Re-fetch checkouts and holds to ensure the most up-to-date status
-        const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`, {headers: API_HEADERS});
-        if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts for status update');
-        checkouts = await checkoutsResponse.json();
+    function logoutCardholder() {
+        loggedInBorrower = null;
+        sessionStorage.removeItem('loggedInBorrower'); // Clear from session storage
+        updateCardholderUI();
+        searchBooks(); // Re-render books to hide hold buttons
+        alert("You have been logged out.");
+    }
 
-        // Re-fetch all active holds for display accuracy
-        const allHoldsResponse = await fetch(`${API_BASE_URL}/holds/all-active`, {headers: API_HEADERS});
-        if (allHoldsResponse.ok) {
-            holds = await allHoldsResponse.json();
+    function checkCardholderSession() {
+        const storedBorrower = sessionStorage.getItem('loggedInBorrower');
+        if (storedBorrower) {
+            loggedInBorrower = JSON.parse(storedBorrower);
+        }
+        updateCardholderUI();
+    }
+
+    function updateCardholderUI() {
+        const loginSection = document.getElementById('cardholderLoginSection');
+        const sessionSection = document.getElementById('cardholderSession');
+        const cardholderInfoSpan = document.getElementById('cardholderInfo');
+        const barcodeInput = document.getElementById('borrowerBarcodeInput');
+
+        if (loggedInBorrower) {
+            loginSection.style.display = 'none';
+            sessionSection.style.display = 'flex';
+            cardholderInfoSpan.textContent = `Logged in as: ${loggedInBorrower.name}`;
+            barcodeInput.value = ''; // Clear input after login
         } else {
-            console.warn("Could not fetch all active holds. Ensure /api/holds/all-active endpoint exists on backend.");
-            holds = [];
+            loginSection.style.display = 'block';
+            sessionSection.style.display = 'none';
+            cardholderInfoSpan.textContent = '';
         }
+    }
 
 
-        for (const { book, barcode } of matches) {
-            const activeCheckout = checkouts.find(c => c.barcode === barcode && !c.checkedIn);
-            const bookHolds = holds.filter(h => h.bookBarcode === barcode && (h.status === 'PENDING' || h.status === 'READY_FOR_PICKUP'))
-                                    .sort((a, b) => new Date(a.holdPlacedDate) - new Date(b.holdPlacedDate)); // Oldest hold first
-
-            let statusHTML = '';
-            let holdInfoHTML = '';
-            let placeHoldButtonHTML = '';
-            let canPlaceHold = false;
-            let currentBorrowerHasBook = false;
-            let currentBorrowerHasHold = false;
-
-            if (loggedInBorrower) {
-                // Check if the logged-in borrower has this book checked out
-                currentBorrowerHasBook = checkouts.some(c => c.barcode === barcode && !c.checkedIn && c.borrowerCode === loggedInBorrower.barcode);
-                // Check if the logged-in borrower already has an active hold on this book
-                currentBorrowerHasHold = holds.some(h => h.bookBarcode === barcode && h.borrowerBarcode === loggedInBorrower.barcode && (h.status === 'PENDING' || h.status === 'READY_FOR_PICKUP'));
-
-                canPlaceHold = !currentBorrowerHasBook && !currentBorrowerHasHold;
-
-                placeHoldButtonHTML = `<button onclick="placeHold('${barcode}')" ${canPlaceHold ? '' : 'disabled'}>
-                                         ${currentBorrowerHasBook ? 'Already Checked Out by You' : (currentBorrowerHasHold ? 'Hold Already Placed' : 'Place Hold')}
-                                       </button>`;
-            }
-
-
-            if (activeCheckout) {
-                // Book is checked out
-                statusHTML = `<div class="book-status status-checked-out">❌ Checked Out by ${activeCheckout.name} (Due: ${formatDate(activeCheckout.dueDate)})</div>`;
-                if (bookHolds.length > 0) {
-                    // There's a pending hold on a checked-out book
-                    holdInfoHTML = `<div class="book-hold-info status-on-hold-pending">
-                                        ⏳ On Hold for ${bookHolds[0].borrowerName} (Queue: ${bookHolds.length} total)
-                                    </div>`;
-                }
+    // --- Admin Mode Toggling ---
+    function toggleAdminMode() {
+        if (!adminMode) {
+            const code = prompt("Enter admin code:");
+            if (code === "42") {
+                adminMode = true;
+                alert("Admin mode enabled.");
+                document.getElementById("adminToggleBtn").style.backgroundColor = "#27ae60";
+                logoutCardholder(); // Admin mode implies no cardholder session
             } else {
-                // Book is checked in
-                if (bookHolds.length > 0 && bookHolds[0].status === 'READY_FOR_PICKUP') {
-                    const readyHold = bookHolds[0];
-                    const daysLeft = calculateDaysLeft(readyHold.expiresDate);
-                    statusHTML = `<div class="book-status status-on-hold-ready">
-                                        ⚠️ ON HOLD for ${readyHold.borrowerName} (${daysLeft} day(s) left to pick up)
-                                    </div>`;
-                } else if (bookHolds.length > 0 && bookHolds[0].status === 'PENDING') {
-                    // This scenario means the book is available, but the first hold is 'PENDING'.
-                    // This implies the check-in process didn't automatically make it 'READY_FOR_PICKUP'.
-                    // It's less common if checkin handles it, but handles cases like manual data entry.
-                    statusHTML = `<div class="book-status status-on-hold-pending">
-                                        ⏳ On Hold (Pending availability) for ${bookHolds[0].borrowerName}
-                                    </div>`;
-                } else {
-                    // Book is checked in and not on active hold
-                    statusHTML = `<div class="book-status status-checked-in">✅ Checked In</div>`;
-                }
+                alert("Incorrect code.");
             }
-
-
-            const bookCard = document.createElement("div");
-            bookCard.className = "book-card";
-
-            if (adminMode) {
-                // Admin mode edit fields will now trigger backend updates
-                bookCard.innerHTML = `
-                    <div><strong>Title:</strong> <input value="${book.title}" onchange="updateBook('${barcode}', 'title', this.value)" /></div>
-                    <div><strong>Author:</strong> <input value="${book.author}" onchange="updateBook('${barcode}', 'author', this.value)" /></div>
-                    <div><strong>Call Number:</strong> <input value="${book.call_number}" onchange="updateBook('${barcode}', 'callNumber', this.value)" /></div>
-                    <div><strong>Barcode:</strong> <input value="${barcode}" onchange="changeBarcode('${barcode}', this.value)" /></div>
-                    ${statusHTML}
-                    ${holdInfoHTML}
-                    <button onclick="deleteBook('${barcode}')" style="margin-top: 10px; background-color: #c0392b; color: white; padding: 6px 10px; border: none; border-radius: 4px;">Delete Book</button>
-                `;
-            } else {
-                bookCard.innerHTML = `
-                    <div class="book-title">${book.title}</div>
-                    <div class="book-author"><strong>Author:</strong> ${book.author}</div>
-                    <div class="book-callnumber"><strong>Call Number:</strong> ${book.call_number}</div>
-                    <div class="book-barcode"><strong>Barcode:</strong> ${barcode}</div>
-                    ${statusHTML}
-                    ${holdInfoHTML}
-                    ${loggedInBorrower ? placeHoldButtonHTML : ''}
-                `;
-            }
-
-            resultsDiv.appendChild(bookCard);
-        }
-
-    } catch (error) {
-        console.error("Error searching books:", error);
-        resultsDiv.innerHTML = `<p id="errorResults" style="color: red;">Error searching books. Please try again or check server connection.</p>`;
-    }
-}
-
-// --- Place Hold Function ---
-async function placeHold(bookBarcode) {
-    if (!loggedInBorrower) {
-        alert("Please log in with your card barcode to place a hold.");
-        return;
-    }
-
-    if (!confirm(`Are you sure you want to place a hold on "${books[bookBarcode].title}"?`)) {
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/holds`, {headers: API_HEADERS}, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                bookBarcode: bookBarcode,
-                borrowerBarcode: loggedInBorrower.barcode
-            })
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            alert(`✅ Hold placed successfully! ${result.message}`);
-            searchBooks(); // Re-render the list to update hold status and button state
         } else {
-            alert(`❌ Error placing hold: ${result.message || response.statusText}`);
+            adminMode = false;
+            alert("Admin mode disabled.");
+            document.getElementById("adminToggleBtn").style.backgroundColor = "#e74c3c";
         }
-    } catch (error) {
-        console.error("Error placing hold:", error);
-        alert("Network error or server unavailable during hold placement.");
-    }
-}
-
-
-// --- Admin Mode Actions (Modified for Backend Interaction) ---
-async function updateBook(barcode, field, value) {
-    try {
-        const payload = { [field]: value };
-        const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {headers: API_HEADERS}, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-            alert(`✅ Book "${field}" updated!`);
-            if (books[barcode]) {
-                books[barcode][field] = value;
-            }
-            searchBooks();
-        } else {
-            alert(`❌ Error updating book: ${result.message || response.statusText}`);
-        }
-    } catch (error) {
-        console.error("Error updating book:", error);
-        alert("Network error or server unavailable during book update.");
-    }
-}
-
-async function changeBarcode(oldBarcode, newBarcode) {
-    if (!newBarcode || newBarcode.trim() === '') {
-        alert("New barcode cannot be empty.");
-        searchBooks();
-        return;
-    }
-    if (newBarcode === oldBarcode) {
-        alert("Barcode is the same. No change needed.");
-        return;
+        searchBooks(); // Re-render results based on admin mode
     }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/books/${oldBarcode}`, {headers: API_HEADERS}, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                newBarcode: newBarcode,
-                title: books[oldBarcode].title,
-                author: books[oldBarcode].author,
-                callNumber: books[oldBarcode].call_number
-            })
-        });
+    // --- Search Function (Modified for Backend Interaction and Holds) ---
+    async function searchBooks() {
+        const query = document.getElementById("searchTitle").value.trim().toLowerCase();
+        const resultsDiv = document.getElementById("results");
+        resultsDiv.innerHTML = ""; // Clear previous results
 
-        const result = await response.json();
+        let matches = [];
 
-        if (response.ok) {
-            alert("✅ Barcode changed successfully!");
-            if (books[oldBarcode]) {
-                books[newBarcode] = { ...books[oldBarcode], barcode: newBarcode };
-                delete books[oldBarcode];
-            }
-            searchBooks();
-        } else {
-            alert(`❌ Error changing barcode: ${result.message || response.statusText}`);
-            searchBooks();
-        }
-    } catch (error) {
-        console.error("Error changing barcode:", error);
-        alert("Network error or server unavailable during barcode change.");
-        searchBooks();
-    }
-}
-
-async function deleteBook(barcode) {
-    if (confirm("Are you sure you want to delete this book? This action is irreversible.")) {
         try {
-            const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {headers: API_HEADERS}, {
-                method: 'DELETE'
+            if (!query) {
+                // If query is empty, fetch all books from the backend
+                const response = await fetch(`${API_BASE_URL}/books`, {headers: API_HEADERS});
+                if (!response.ok) throw new Error('Failed to fetch all books');
+                const allBooksData = await response.json();
+                matches = Object.entries(allBooksData).map(([barcode, book]) => ({ barcode, book }))
+                    .sort((a, b) => a.book.title.localeCompare(b.book.title));
+                books = allBooksData;
+
+            } else {
+                // For a specific query, use backend search endpoint
+                const response = await fetch(`${API_BASE_URL}/books/search?query=${encodeURIComponent(query)}`, {headers: API_HEADERS});
+                if (!response.ok) throw new Error('Failed to search books');
+                const searchResults = await response.json();
+
+                if (searchResults.length === 0) {
+                    resultsDiv.innerHTML = `<p id="noResults">No books found matching "${query}".</p>`;
+                    return;
+                }
+                matches = searchResults.map(book => ({ barcode: book.barcode, book }));
+            }
+
+            // Re-fetch checkouts and holds to ensure the most up-to-date status
+            const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`, {headers: API_HEADERS});
+            if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts for status update');
+            checkouts = await checkoutsResponse.json();
+
+            // Re-fetch all active holds for display accuracy
+            const allHoldsResponse = await fetch(`${API_BASE_URL}/holds/all-active`, {headers: API_HEADERS});
+            if (allHoldsResponse.ok) {
+                holds = await allHoldsResponse.json();
+            } else {
+                console.warn("Could not fetch all active holds. Ensure /api/holds/all-active endpoint exists on backend.");
+                holds = [];
+            }
+
+
+            for (const { book, barcode } of matches) {
+                const activeCheckout = checkouts.find(c => c.barcode === barcode && !c.checkedIn);
+                const bookHolds = holds.filter(h => h.bookBarcode === barcode && (h.status === 'PENDING' || h.status === 'READY_FOR_PICKUP'))
+                                        .sort((a, b) => new Date(a.holdPlacedDate) - new Date(b.holdPlacedDate)); // Oldest hold first
+
+                let statusHTML = '';
+                let holdInfoHTML = '';
+                let placeHoldButtonHTML = '';
+                let canPlaceHold = false;
+                let currentBorrowerHasBook = false;
+                let currentBorrowerHasHold = false;
+
+                if (loggedInBorrower) {
+                    // Check if the logged-in borrower has this book checked out
+                    currentBorrowerHasBook = checkouts.some(c => c.barcode === barcode && !c.checkedIn && c.borrowerCode === loggedInBorrower.barcode);
+                    // Check if the logged-in borrower already has an active hold on this book
+                    currentBorrowerHasHold = holds.some(h => h.bookBarcode === barcode && h.borrowerBarcode === loggedInBorrower.barcode && (h.status === 'PENDING' || h.status === 'READY_FOR_PICKUP'));
+
+                    canPlaceHold = !currentBorrowerHasBook && !currentBorrowerHasHold;
+
+                    placeHoldButtonHTML = `<button onclick="placeHold('${barcode}')" ${canPlaceHold ? '' : 'disabled'}>
+                                               ${currentBorrowerHasBook ? 'Already Checked Out by You' : (currentBorrowerHasHold ? 'Hold Already Placed' : 'Place Hold')}
+                                           </button>`;
+                }
+
+
+                if (activeCheckout) {
+                    // Book is checked out
+                    statusHTML = `<div class="book-status status-checked-out">❌ Checked Out by ${activeCheckout.name} (Due: ${formatDate(activeCheckout.dueDate)})</div>`;
+                    if (bookHolds.length > 0) {
+                        // There's a pending hold on a checked-out book
+                        holdInfoHTML = `<div class="book-hold-info status-on-hold-pending">
+                                            ⏳ On Hold for ${bookHolds[0].borrowerName} (Queue: ${bookHolds.length} total)
+                                        </div>`;
+                    }
+                } else {
+                    // Book is checked in
+                    if (bookHolds.length > 0 && bookHolds[0].status === 'READY_FOR_PICKUP') {
+                        const readyHold = bookHolds[0];
+                        const daysLeft = calculateDaysLeft(readyHold.expiresDate);
+                        statusHTML = `<div class="book-status status-on-hold-ready">
+                                            ⚠️ ON HOLD for ${readyHold.borrowerName} (${daysLeft} day(s) left to pick up)
+                                        </div>`;
+                    } else if (bookHolds.length > 0 && bookHolds[0].status === 'PENDING') {
+                        // This scenario means the book is available, but the first hold is 'PENDING'.
+                        // This implies the check-in process didn't automatically make it 'READY_FOR_PICKUP'.
+                        // It's less common if checkin handles it, but handles cases like manual data entry.
+                        statusHTML = `<div class="book-status status-on-hold-pending">
+                                            ⏳ On Hold (Pending availability) for ${bookHolds[0].borrowerName}
+                                        </div>`;
+                    } else {
+                        // Book is checked in and not on active hold
+                        statusHTML = `<div class="book-status status-checked-in">✅ Checked In</div>`;
+                    }
+                }
+
+
+                const bookCard = document.createElement("div");
+                bookCard.className = "book-card";
+
+                if (adminMode) {
+                    // Admin mode edit fields will now trigger backend updates
+                    bookCard.innerHTML = `
+                        <div><strong>Title:</strong> <input value="${book.title}" onchange="updateBook('${barcode}', 'title', this.value)" /></div>
+                        <div><strong>Author:</strong> <input value="${book.author}" onchange="updateBook('${barcode}', 'author', this.value)" /></div>
+                        <div><strong>Call Number:</strong> <input value="${book.call_number}" onchange="updateBook('${barcode}', 'callNumber', this.value)" /></div>
+                        <div><strong>Barcode:</strong> <input value="${barcode}" onchange="changeBarcode('${barcode}', this.value)" /></div>
+                        ${statusHTML}
+                        ${holdInfoHTML}
+                        <button onclick="deleteBook('${barcode}')" style="margin-top: 10px; background-color: #c0392b; color: white; padding: 6px 10px; border: none; border-radius: 4px;">Delete Book</button>
+                    `;
+                } else {
+                    bookCard.innerHTML = `
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-author"><strong>Author:</strong> ${book.author}</div>
+                        <div class="book-callnumber"><strong>Call Number:</strong> ${book.call_number}</div>
+                        <div class="book-barcode"><strong>Barcode:</strong> ${barcode}</div>
+                        ${statusHTML}
+                        ${holdInfoHTML}
+                        ${loggedInBorrower ? placeHoldButtonHTML : ''}
+                    `;
+                }
+
+                resultsDiv.appendChild(bookCard);
+            }
+
+        } catch (error) {
+            console.error("Error searching books:", error);
+            resultsDiv.innerHTML = `<p id="errorResults" style="color: red;">Error searching books. Please try again or check server connection.</p>`;
+        }
+    }
+
+    // --- Place Hold Function ---
+    async function placeHold(bookBarcode) {
+        if (!loggedInBorrower) {
+            alert("Please log in with your card barcode to place a hold.");
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to place a hold on "${books[bookBarcode].title}"?`)) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/holds`, {
+                method: 'POST',
+                headers: {
+                    ...API_HEADERS, // Corrected: Merged API_HEADERS
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    bookBarcode: bookBarcode,
+                    borrowerBarcode: loggedInBorrower.barcode
+                })
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                alert(`✅ Book "${barcode}" deleted successfully!`);
-                delete books[barcode];
-                searchBooks();
+                alert(`✅ Hold placed successfully! ${result.message}`);
+                searchBooks(); // Re-render the list to update hold status and button state
             } else {
-                alert(`❌ Error deleting book: ${result.message || response.statusText}`);
+                alert(`❌ Error placing hold: ${result.message || response.statusText}`);
             }
         } catch (error) {
-            console.error("Error deleting book:", error);
-            alert("Network error or server unavailable during book deletion.");
+            console.error("Error placing hold:", error);
+            alert("Network error or server unavailable during hold placement.");
         }
     }
-}
 
-// --- Utility Functions (unchanged) ---
-function levenshtein(a, b) {
-    const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-    for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-            matrix[i][j] = Math.min(
-                matrix[i - 1][j - 1] + (b[i - 1] === a[j - 1] ? 0 : 1),
-                matrix[i][j - 1] + 1,
-                matrix[i - 1][j] + 1
-            );
+
+    // --- Admin Mode Actions (Modified for Backend Interaction) ---
+    async function updateBook(barcode, field, value) {
+        try {
+            const payload = { [field]: value };
+            const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+                method: 'PUT',
+                headers: {
+                    ...API_HEADERS, // Corrected: Merged API_HEADERS
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert(`✅ Book "${field}" updated!`);
+                if (books[barcode]) {
+                    books[barcode][field] = value;
+                }
+                searchBooks();
+            } else {
+                alert(`❌ Error updating book: ${result.message || response.statusText}`);
+            }
+        } catch (error) {
+            console.error("Error updating book:", error);
+            alert("Network error or server unavailable during book update.");
         }
     }
-    return matrix[b.length][a.length];
-}
 
-function normalize(text) {
-    return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
-}
+    async function changeBarcode(oldBarcode, newBarcode) {
+        if (!newBarcode || newBarcode.trim() === '') {
+            alert("New barcode cannot be empty.");
+            searchBooks();
+            return;
+        }
+        if (newBarcode === oldBarcode) {
+            alert("Barcode is the same. No change needed.");
+            return;
+        }
 
-function similarityScore(a, b) {
-    const normA = normalize(a);
-    const normB = normalize(b);
-    const dist = levenshtein(normA, normB);
-    return 1 - dist / Math.max(normA.length, normB.length);
-}
+        try {
+            const response = await fetch(`${API_BASE_URL}/books/${oldBarcode}`, {
+                method: 'PUT',
+                headers: {
+                    ...API_HEADERS, // Corrected: Merged API_HEADERS
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    newBarcode: newBarcode,
+                    title: books[oldBarcode].title,
+                    author: books[oldBarcode].author,
+                    callNumber: books[oldBarcode].call_number
+                })
+            });
 
-function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) {
-        console.warn("Invalid date string provided to formatDate:", dateStr);
-        return "Invalid Date";
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("✅ Barcode changed successfully!");
+                if (books[oldBarcode]) {
+                    books[newBarcode] = { ...books[oldBarcode], barcode: newBarcode };
+                    delete books[oldBarcode];
+                }
+                searchBooks();
+            } else {
+                alert(`❌ Error changing barcode: ${result.message || response.statusText}`);
+                searchBooks();
+            }
+        } catch (error) {
+            console.error("Error changing barcode:", error);
+            alert("Network error or server unavailable during barcode change.");
+            searchBooks();
+        }
     }
-    return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
 
-function calculateDaysLeft(expiresDateStr) {
-    const expiresDate = new Date(expiresDateStr);
-    const now = new Date();
-    expiresDate.setHours(0, 0, 0, 0);
-    now.setHours(0, 0, 0, 0);
-    const diffTime = expiresDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return Math.max(0, diffDays);
-}
+    async function deleteBook(barcode) {
+        if (confirm("Are you sure you want to delete this book? This action is irreversible.")) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/books/${barcode}`, {
+                    method: 'DELETE',
+                    headers: API_HEADERS // Corrected: Simply pass API_HEADERS as the headers object
+                });
 
-// --- Idle Timer (unchanged) ---
-let idleTimer;
-function resetIdleTimer() {
-    clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-        // location.reload(); // Re-enable if you want a full refresh on idle
-    }, 100000000); // Very long time, effectively disabled
-}
-['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(event => {
-    document.addEventListener(event, resetIdleTimer);
-});
-resetIdleTimer();
+                const result = await response.json();
 
-// --- Initial Load ---
-window.onload = initializeDataForLookup;
-  </script>
+                if (response.ok) {
+                    alert(`✅ Book "${barcode}" deleted successfully!`);
+                    delete books[barcode];
+                    searchBooks();
+                } else {
+                    alert(`❌ Error deleting book: ${result.message || response.statusText}`);
+                }
+            } catch (error) {
+                console.error("Error deleting book:", error);
+                alert("Network error or server unavailable during book deletion.");
+            }
+        }
+    }
+
+    // --- Utility Functions (unchanged) ---
+    function levenshtein(a, b) {
+        const matrix = Array.from({ length: b.length + 1 }, (_, i) => [i]);
+        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+        for (let i = 1; i <= b.length; i++) {
+            for (let j = 1; j <= a.length; j++) {
+                matrix[i][j] = Math.min(
+                    matrix[i - 1][j - 1] + (b[i - 1] === a[j - 1] ? 0 : 1),
+                    matrix[i][j - 1] + 1,
+                    matrix[i - 1][j] + 1
+                );
+            }
+        }
+        return matrix[b.length][a.length];
+    }
+
+    function normalize(text) {
+        return text.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim();
+    }
+
+    function similarityScore(a, b) {
+        const normA = normalize(a);
+        const normB = normalize(b);
+        const dist = levenshtein(normA, normB);
+        return 1 - dist / Math.max(normA.length, normB.length);
+    }
+
+    function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) {
+            console.warn("Invalid date string provided to formatDate:", dateStr);
+            return "Invalid Date";
+        }
+        return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    }
+
+    function calculateDaysLeft(expiresDateStr) {
+        const expiresDate = new Date(expiresDateStr);
+        const now = new Date();
+        expiresDate.setHours(0, 0, 0, 0);
+        now.setHours(0, 0, 0, 0);
+        const diffTime = expiresDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return Math.max(0, diffDays);
+    }
+
+    // --- Idle Timer (unchanged) ---
+    let idleTimer;
+    function resetIdleTimer() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(() => {
+            // location.reload(); // Re-enable if you want a full refresh on idle
+        }, 100000000); // Very long time, effectively disabled
+    }
+    ['mousemove', 'keydown', 'mousedown', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetIdleTimer);
+    });
+    resetIdleTimer();
+
+    // --- Initial Load ---
+    window.onload = initializeDataForLookup;
+</script>
 </body>
 </html>
