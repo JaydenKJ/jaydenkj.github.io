@@ -299,12 +299,8 @@
 
 <!-- Step 10: Export / Import All Data -->
 <div class="section">
-  <h3>Step 10: Export / Import Data</h3>
-  <button onclick="exportLibraryData()">⬇️ Export to JSON</button>
-  
-  <input type="file" id="importFile" accept=".json" style="margin-left: 12px;" />
-  <button onclick="importLibraryData()">⬆️ Import JSON</button>
-  <div id="importStatus" style="margin-top: 10px; font-weight: bold;"></div>
+  <h3>Step 10: Clean expired holds</h3>
+  <button onclick="cleanExpiredHolds()">Clean</button>
 </div>
 
 
@@ -402,7 +398,23 @@ document.addEventListener('DOMContentLoaded', initializeData);
 
 
 // --- Modified Functions to interact with Backend ---
-
+function cleanExpiredHolds() {
+  fetch('/api/holds/clean-expired', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    console.log(data);
+  })
+  .catch(err => {
+    console.error('Error:', err);
+    alert('Failed to clean expired holds.');
+  });
+}
 // Step 1: Save Book
 async function saveBook() {
     const barcode = document.getElementById("bookBarcode").value.trim();
