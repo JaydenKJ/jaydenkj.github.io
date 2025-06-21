@@ -210,7 +210,7 @@ async function renewBook(checkoutId) {
     msgBox.style.display = "none"; // Hide previous messages
 
     try {
-        const response = await fetch(`https://bold-filly-noble.ngrok-free.app/api/checkouts/renew/${checkoutId}`, {headers: API_HEADERS}, {
+        const response = await fetch(`https://bold-filly-noble.ngrok-free.app/api/checkouts/renew/${checkoutId}`,  {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
