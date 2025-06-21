@@ -251,421 +251,403 @@
 </div>
 
 <script>
-    fetch("https://bold-filly-noble.ngrok-free.app/api", {headers: API_HEADERS}, { method: "GET", cache: "no-store" })
-      .then(res => {
+    const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api';
+    const API_HEADERS = {"ngrok-skip-browser-warning": "true"};
+
+    let borrowers = {};
+    let books = {};
+    let checkouts = [];
+
+    let currentBorrower = null;
+    let adminMode = false;
+    let maxBooks = parseInt(localStorage.getItem("maxBooksAllowed")) || 5;
+
+    let selectedDeviceId = null;
+    let codeReader = null;
+    let checkoutFromCamera = false;
+
+    // Initial connection check
+    fetch(API_BASE_URL, {
+        method: "GET",
+        cache: "no-store",
+        headers: API_HEADERS // Corrected
+    })
+    .then(res => {
         if (res.ok) {
-          const el = document.getElementById("status");
-          el.textContent = "Connected ✅";
-          setTimeout(() => {
-            el.classList.add("fade-out");
-            setTimeout(() => el.style.display = "none", 1000); // match fade duration
-          }, 5000);
+            const el = document.getElementById("status");
+            el.textContent = "Connected ✅";
+            setTimeout(() => {
+                el.classList.add("fade-out");
+                setTimeout(() => el.style.display = "none", 1000);
+            }, 5000);
         } else {
-          document.getElementById("status").textContent = "Server error ❌";
+            document.getElementById("status").textContent = "Server error ❌";
         }
-      })
-      .catch(() => {
+    })
+    .catch(() => {
         document.getElementById("status").textContent = "Can't connect ❌";
-      });
-  </script>
+    });
 
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@0.18.6/umd/index.min.js"></script>
-
-<script>
-  // Server API Base URL
-const API_BASE_URL = 'https://bold-filly-noble.ngrok-free.app/api'; // Make sure this matches your server's port
-const API_HEADERS = {"ngrok-skip-browser-warning": "true"};
-
-let borrowers = {}; // Will be loaded from the server
-let books = {};     // Will be loaded from the server
-let checkouts = []; // Will be loaded from the server (current checkouts for UI)
-
-let currentBorrower = null;
-let adminMode = false;
-let maxBooks = parseInt(localStorage.getItem("maxBooksAllowed")) || 5; // Max books still local for simplicity
-
-let selectedDeviceId = null;
-let codeReader = null;
-let checkoutFromCamera = false;
-
-// --- Helper Function to Fetch Data ---
-async function fetchData(endpoint) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/${endpoint}`, {headers: API_HEADERS});
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+    // --- Helper Function to Fetch Data ---
+    async function fetchData(endpoint) {
+        try {
+            const response = await fetch(`${API_BASE_URL}/${endpoint}`, { headers: API_HEADERS }); // Corrected
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching data from server:', error);
+            alert('Failed to connect to the server or load data. Please ensure the server is running.');
+            return null;
         }
-        return await response.json();
-    } catch (error) {
-        console.error('Error fetching data from server:', error);
-        alert('Failed to connect to the server or load data. Please ensure the server is running.');
-        // Optionally, you might want to redirect to an error page or show a persistent message
-        return null; // Return null on error so calling functions can handle it
-    }
-}
-
-// --- Initial Data Load from Server ---
-async function loadAllData() {
-    // Load borrowers
-    const loadedBorrowers = await fetchData('borrowers');
-    if (loadedBorrowers) {
-        borrowers = loadedBorrowers;
     }
 
-    // Load books
-    const loadedBooks = await fetchData('books');
-    if (loadedBooks) {
-        books = loadedBooks;
+    // --- Initial Data Load from Server ---
+    async function loadAllData() {
+        const loadedBorrowers = await fetchData('borrowers');
+        if (loadedBorrowers) {
+            borrowers = loadedBorrowers;
+        }
+
+        const loadedBooks = await fetchData('books');
+        if (loadedBooks) {
+            books = loadedBooks;
+        }
+
+        const loadedCheckouts = await fetchData('checkouts/current');
+        if (loadedCheckouts) {
+            checkouts = loadedCheckouts;
+        }
+
+        console.log('Data loaded from server:', { borrowers, books, checkouts });
     }
 
-    // Load current checkouts for the UI (only active ones are needed for checkout logic)
-    const loadedCheckouts = await fetchData('checkouts/current');
-    if (loadedCheckouts) {
-        checkouts = loadedCheckouts;
+    // --- Modified Functions ---
+
+    async function confirmBorrower() {
+        const input = document.getElementById("borrowerInput").value.trim();
+        const msg = document.getElementById("borrowerMessage");
+        const section = document.getElementById("checkoutSection");
+
+        if (!input) {
+            msg.textContent = "Please enter a borrower code.";
+            msg.className = "message error";
+            msg.style.display = "block";
+            currentBorrower = null;
+            section.style.display = "none";
+            stopCameraScan();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/borrowers/${input}`, { headers: API_HEADERS }); // Corrected
+            if (!response.ok) {
+                if (response.status === 404) {
+                    msg.textContent = "❌ Borrower not found.";
+                    msg.className = "message error";
+                    msg.style.display = "block";
+                    currentBorrower = null;
+                    section.style.display = "none";
+                    stopCameraScan();
+                } else {
+                    throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                }
+                return;
+            }
+
+            const borrowerData = await response.json();
+            currentBorrower = borrowerData.barcode;
+            borrowers[borrowerData.barcode] = borrowerData.name;
+
+            msg.textContent = `✅ Welcome, ${borrowerData.name}!`;
+            msg.className = "message success";
+            msg.style.display = "block";
+            section.style.display = "block";
+            document.getElementById("bookInput").focus();
+            if (adminMode) loadAdminCheckouts();
+
+        } catch (error) {
+            console.error('Error confirming borrower:', error);
+            msg.textContent = "❌ An error occurred while confirming borrower.";
+            msg.className = "message error";
+            msg.style.display = "block";
+            currentBorrower = null;
+            section.style.display = "none";
+            stopCameraScan();
+        }
+        document.getElementById("borrowerInput").value = "";
     }
 
-    console.log('Data loaded from server:', { borrowers, books, checkouts });
-}
+    async function checkoutBook(bookCode = null) {
+        if (!bookCode) {
+            bookCode = document.getElementById("bookInput").value.trim();
+            checkoutFromCamera = false;
+        } else {
+            checkoutFromCamera = true;
+        }
 
+        const msg = document.getElementById("checkoutMessage");
 
-// --- Modified Functions ---
+        if (!currentBorrower) {
+            msg.textContent = "❌ Please scan your library card first.";
+            msg.className = "message error";
+            msg.style.display = "block";
+            return;
+        }
 
-async function confirmBorrower() {
-    const input = document.getElementById("borrowerInput").value.trim();
-    const msg = document.getElementById("borrowerMessage");
-    const section = document.getElementById("checkoutSection");
+        if (!bookCode) {
+            msg.textContent = "❌ Please scan or enter a book barcode.";
+            msg.className = "message error";
+            msg.style.display = "block";
+            return;
+        }
 
-    if (!input) {
-        msg.textContent = "Please enter a borrower code.";
-        msg.className = "message error";
-        msg.style.display = "block";
-        currentBorrower = null;
-        section.style.display = "none";
-        stopCameraScan();
-        return;
-    }
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/borrowers/${input}`, {headers: API_HEADERS});
-        if (!response.ok) {
-            // Check if it's a 404 (Borrower not found)
-            if (response.status === 404) {
-                msg.textContent = "❌ Borrower not found.";
+        try {
+            const bookResponse = await fetch(`${API_BASE_URL}/books/${bookCode}`, { headers: API_HEADERS }); // Corrected
+            if (!bookResponse.ok) {
+                if (bookResponse.status === 404) {
+                    msg.textContent = "❌ Book not found. Please ask an associate for more information.";
+                } else {
+                    throw new Error(`Server error checking book: ${bookResponse.status} ${bookResponse.statusText}`);
+                }
                 msg.className = "message error";
                 msg.style.display = "block";
-                currentBorrower = null;
-                section.style.display = "none";
-                stopCameraScan();
-            } else {
-                // Other server errors
+                return;
+            }
+            const book = await bookResponse.json();
+
+            const checkoutResponse = await fetch(`${API_BASE_URL}/checkouts`, {
+                method: 'POST',
+                headers: {
+                    ...API_HEADERS, // Corrected
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    bookBarcode: bookCode,
+                    borrowerCode: currentBorrower,
+                }),
+            });
+
+            const checkoutData = await checkoutResponse.json();
+
+            if (!checkoutResponse.ok) {
+                msg.textContent = `❌ ${checkoutData.message || 'Failed to check out book.'}`;
+                msg.className = "message error";
+                msg.style.display = "block";
+                return;
+            }
+
+            checkouts.push(checkoutData.checkout);
+
+            const due = new Date(checkoutData.checkout.dueDate);
+            msg.textContent = `✅ "${book.title}" checked out. Due ${due.toDateString()}`;
+            msg.className = "message success";
+            msg.style.display = "block";
+
+            document.getElementById("bookInput").value = "";
+
+            showReceipt(checkoutData.checkout);
+
+            if (checkoutFromCamera) {
+                const beep = document.getElementById('beepSound');
+                beep.currentTime = 0;
+                beep.play().catch(() => {});
+            }
+
+        } catch (error) {
+            console.error('Error during checkout:', error);
+            msg.textContent = "❌ An error occurred during checkout. Please try again.";
+            msg.className = "message error";
+            msg.style.display = "block";
+        }
+    }
+
+    async function loadAdminCheckouts() {
+        const container = document.getElementById("adminCheckouts");
+        if (!currentBorrower) {
+            container.innerHTML = "<em>No borrower selected.</em>";
+            return;
+        }
+
+        container.innerHTML = "Loading checkouts...";
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/checkouts/current`, { headers: API_HEADERS }); // Corrected
+            if (!response.ok) {
                 throw new Error(`Server error: ${response.status} ${response.statusText}`);
             }
-            return;
-        }
+            const allCurrentCheckouts = await response.json();
 
-        const borrowerData = await response.json();
-        currentBorrower = borrowerData.barcode; // Use the barcode from the fetched data
-        borrowers[borrowerData.barcode] = borrowerData.name; // Update local cache if needed, though 'borrowers' object is already loaded
+            const userCheckouts = allCurrentCheckouts.filter(c => c.borrowerCode === currentBorrower);
 
-        msg.textContent = `✅ Welcome, ${borrowerData.name}!`;
-        msg.className = "message success";
-        msg.style.display = "block";
-        section.style.display = "block";
-        document.getElementById("bookInput").focus();
-        if (adminMode) loadAdminCheckouts();
-
-    } catch (error) {
-        console.error('Error confirming borrower:', error);
-        msg.textContent = "❌ An error occurred while confirming borrower.";
-        msg.className = "message error";
-        msg.style.display = "block";
-        currentBorrower = null;
-        section.style.display = "none";
-        stopCameraScan();
-    }
-    document.getElementById("borrowerInput").value = "";
-}
-
-async function checkoutBook(bookCode = null) {
-    if (!bookCode) {
-        bookCode = document.getElementById("bookInput").value.trim();
-        checkoutFromCamera = false;
-    } else {
-        checkoutFromCamera = true;
-    }
-
-    const msg = document.getElementById("checkoutMessage");
-
-    if (!currentBorrower) {
-        msg.textContent = "❌ Please scan your library card first.";
-        msg.className = "message error";
-        msg.style.display = "block";
-        return;
-    }
-
-    if (!bookCode) {
-        msg.textContent = "❌ Please scan or enter a book barcode.";
-        msg.className = "message error";
-        msg.style.display = "block";
-        return;
-    }
-
-    try {
-        // First, check if the book exists and is available using the server API
-        const bookResponse = await fetch(`${API_BASE_URL}/books/${bookCode}`, {headers: API_HEADERS});
-        if (!bookResponse.ok) {
-            if (bookResponse.status === 404) {
-                msg.textContent = "❌ Book not found. Please ask an associate for more information.";
-            } else {
-                throw new Error(`Server error checking book: ${bookResponse.status} ${bookResponse.statusText}`);
+            if (userCheckouts.length === 0) {
+                container.innerHTML = "<em>No active checkouts for this borrower.</em>";
+                return;
             }
-            msg.className = "message error";
-            msg.style.display = "block";
-            return;
+
+            container.innerHTML = "";
+            userCheckouts.forEach((c) => {
+                const div = document.createElement("div");
+                div.innerHTML = `
+                    <div style="margin-bottom:10px; border:1px solid #ccc; padding:10px;">
+                        <strong>${c.title}</strong><br/>
+                        Barcode: ${c.barcode}<br/>
+                        Checkout ID: ${c.id}<br/>
+                        <button onclick="checkInBook('${c.barcode}')" style="margin-top:5px;">Check In</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+        } catch (error) {
+            console.error('Error loading admin checkouts:', error);
+            container.innerHTML = "<em>Error loading checkouts.</em>";
         }
-        const book = await bookResponse.json(); // Get book details from server
-
-        // Then, attempt to create the checkout
-        const checkoutResponse = await fetch(`${API_BASE_URL}/checkouts`, {headers: API_HEADERS}, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                bookBarcode: bookCode,
-                borrowerCode: currentBorrower,
-            }),
-        });
-
-        const checkoutData = await checkoutResponse.json();
-
-        if (!checkoutResponse.ok) {
-            // Handle specific error messages from the server
-            msg.textContent = `❌ ${checkoutData.message || 'Failed to check out book.'}`;
-            msg.className = "message error";
-            msg.style.display = "block";
-            return;
-        }
-
-        // If successful, update local checkouts array and UI
-        checkouts.push(checkoutData.checkout); // Add the newly created checkout object from server
-        // localStorage.setItem("checkoutLog", JSON.stringify(checkouts)); // No longer needed for persistence
-
-        const due = new Date(checkoutData.checkout.dueDate); // Use due date from server response
-        msg.textContent = `✅ "${book.title}" checked out. Due ${due.toDateString()}`;
-        msg.className = "message success";
-        msg.style.display = "block";
-
-        document.getElementById("bookInput").value = "";
-
-        showReceipt(checkoutData.checkout); // Pass the full checkout object
-
-        if (checkoutFromCamera) {
-            const beep = document.getElementById('beepSound');
-            beep.currentTime = 0;
-            beep.play().catch(() => {});
-        }
-
-    } catch (error) {
-        console.error('Error during checkout:', error);
-        msg.textContent = "❌ An error occurred during checkout. Please try again.";
-        msg.className = "message error";
-        msg.style.display = "block";
-    }
-}
-
-async function loadAdminCheckouts() {
-    const container = document.getElementById("adminCheckouts");
-    if (!currentBorrower) {
-        container.innerHTML = "<em>No borrower selected.</em>";
-        return;
     }
 
-    container.innerHTML = "Loading checkouts...";
-
-    try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/current`, {headers: API_HEADERS});
-        if (!response.ok) {
-            throw new Error(`Server error: ${response.status} ${response.statusText}`);
-        }
-        const allCurrentCheckouts = await response.json();
-
-        // Filter for the current borrower on the client-side
-        const userCheckouts = allCurrentCheckouts.filter(c => c.borrowerCode === currentBorrower);
-
-        if (userCheckouts.length === 0) {
-            container.innerHTML = "<em>No active checkouts for this borrower.</em>";
+    async function checkInBook(bookBarcode) {
+        const confirmed = confirm(`Are you sure you want to check in book with barcode: ${bookBarcode}?`);
+        if (!confirmed) {
             return;
         }
 
-        container.innerHTML = ""; // Clear "Loading..."
-        userCheckouts.forEach((c) => { // No need for index 'i' if using checkout.id for removal
-            const div = document.createElement("div");
-            div.innerHTML = `
-                <div style="margin-bottom:10px; border:1px solid #ccc; padding:10px;">
-                    <strong>${c.title}</strong><br/>
-                    Barcode: ${c.barcode}<br/>
-                    Checkout ID: ${c.id}<br/>
-                    <button onclick="checkInBook('${c.barcode}')" style="margin-top:5px;">Check In</button>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    } catch (error) {
-        console.error('Error loading admin checkouts:', error);
-        container.innerHTML = "<em>Error loading checkouts.</em>";
+        try {
+            const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {
+                method: 'POST',
+                headers: {
+                    ...API_HEADERS, // Corrected
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ barcode: bookBarcode }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert(`Error checking in book: ${data.message || 'Server error'}`);
+                return;
+            }
+
+            alert(`Checked in: ${data.title || bookBarcode}`);
+            await loadAllData();
+            if (adminMode) loadAdminCheckouts();
+
+        } catch (error) {
+            console.error('Error during check-in:', error);
+            alert('An error occurred during check-in. Please try again.');
+        }
     }
-}
 
-async function checkInBook(bookBarcode) { // Renamed from removeCheckout to be more accurate
-    const confirmed = confirm(`Are you sure you want to check in book with barcode: ${bookBarcode}?`);
-    if (!confirmed) {
-        return;
+    // --- Unchanged Functions (or minor adjustments) ---
+
+    function showReceipt(checkout) {
+        const container = document.getElementById("receiptContainer");
+        const div = document.createElement("div");
+        div.className = "receipt";
+        div.innerHTML = `
+            <div><strong>${checkout.title}</strong></div>
+            <div>Author: ${checkout.author}</div>
+            <div>Call Number: ${checkout.callNumber}</div>
+            <div>Barcode: ${checkout.barcode}</div>
+            <div>Due: ${new Date(checkout.dueDate).toDateString()}</div>
+        `;
+        container.appendChild(div);
     }
 
-    try {
-        const response = await fetch(`${API_BASE_URL}/checkouts/checkin`, {headers: API_HEADERS}, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ barcode: bookBarcode }),
-        });
+    function clearReceipts() {
+        location.reload();
+    }
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            alert(`Error checking in book: ${data.message || 'Server error'}`);
+    async function startCameraScan() {
+        if (!currentBorrower) {
+            alert("Please scan your library card first.");
             return;
         }
 
-        alert(`Checked in: ${data.title || bookBarcode}`);
-        // Refresh the checkouts displayed in admin panel
-        await loadAllData(); // Re-fetch all current checkouts to update UI
-        if (adminMode) loadAdminCheckouts(); // Reload admin specific display
+        if (codeReader) return;
 
-    } catch (error) {
-        console.error('Error during check-in:', error);
-        alert('An error occurred during check-in. Please try again.');
-    }
-}
+        codeReader = new ZXing.BrowserMultiFormatReader();
 
+        document.getElementById("videoContainer").style.display = "block";
+        document.getElementById("stopCameraBtn").style.display = "inline-block";
 
-// --- Unchanged Functions (or minor adjustments) ---
+        try {
+            const videoInputDevices = await codeReader.listVideoInputDevices();
+            selectedDeviceId = videoInputDevices[0].deviceId;
 
-function showReceipt(checkout) {
-    const container = document.getElementById("receiptContainer");
-    const div = document.createElement("div");
-    div.className = "receipt";
-    div.innerHTML = `
-      <div><strong>${checkout.title}</strong></div>
-      <div>Author: ${checkout.author}</div>
-      <div>Call Number: ${checkout.callNumber}</div>
-      <div>Barcode: ${checkout.barcode}</div>
-      <div>Due: ${new Date(checkout.dueDate).toDateString()}</div>
-    `;
-    container.appendChild(div);
-}
-
-function clearReceipts() {
-    location.reload(); // Still reloads to clear receipts, which will also re-fetch data
-}
-
-async function startCameraScan() {
-    if (!currentBorrower) {
-        alert("Please scan your library card first.");
-        return;
+            await codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
+                if (result) checkoutBook(result.text);
+                if (err && !(err instanceof ZXing.NotFoundException)) console.error(err);
+            });
+        } catch (error) {
+            alert("Error starting camera: " + error);
+            stopCameraScan();
+        }
     }
 
-    if (codeReader) return;
-
-    codeReader = new ZXing.BrowserMultiFormatReader();
-
-    document.getElementById("videoContainer").style.display = "block";
-    document.getElementById("stopCameraBtn").style.display = "inline-block";
-
-    try {
-        const videoInputDevices = await codeReader.listVideoInputDevices();
-        selectedDeviceId = videoInputDevices[0].deviceId;
-
-        await codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-            if (result) checkoutBook(result.text);
-            if (err && !(err instanceof ZXing.NotFoundException)) console.error(err);
-        });
-    } catch (error) {
-        alert("Error starting camera: " + error);
-        stopCameraScan();
+    function stopCameraScan() {
+        if (codeReader) {
+            codeReader.reset();
+            codeReader = null;
+        }
+        document.getElementById("videoContainer").style.display = "none";
+        document.getElementById("stopCameraBtn").style.display = "none";
     }
-}
 
-function stopCameraScan() {
-    if (codeReader) {
-        codeReader.reset();
-        codeReader = null;
+    function toggleHelp() {
+        const popup = document.getElementById("helpPopup");
+        popup.style.display = popup.style.display === "block" ? "none" : "block";
     }
-    document.getElementById("videoContainer").style.display = "none";
-    document.getElementById("stopCameraBtn").style.display = "none";
-}
 
-function toggleHelp() {
-    const popup = document.getElementById("helpPopup");
-    popup.style.display = popup.style.display === "block" ? "none" : "block";
-}
-
-function toggleAdmin() {
-    if (adminMode) {
-        adminMode = false;
-        document.getElementById("adminPanel").style.display = "none";
-    } else {
-        const code = prompt("Enter admin code:");
-        if (code === "82184088") {
-            adminMode = true;
-            document.getElementById("adminPanel").style.display = "block";
-            document.getElementById("maxBooksInput").value = maxBooks;
-            loadAdminCheckouts();
+    function toggleAdmin() {
+        if (adminMode) {
+            adminMode = false;
+            document.getElementById("adminPanel").style.display = "none";
         } else {
-            alert("Incorrect code.");
+            const code = prompt("Enter admin code:");
+            if (code === "82184088") {
+                adminMode = true;
+                document.getElementById("adminPanel").style.display = "block";
+                document.getElementById("maxBooksInput").value = maxBooks;
+                loadAdminCheckouts();
+            } else {
+                alert("Incorrect code.");
+            }
         }
     }
-}
 
-function saveMaxBooks() {
-    const val = parseInt(document.getElementById("maxBooksInput").value);
-    if (!isNaN(val) && val > 0) {
-        maxBooks = val;
-        localStorage.setItem("maxBooksAllowed", maxBooks); // Still local for max books
-        alert("Max books per borrower updated.");
-    } else {
-        alert("Please enter a valid number.");
+    function saveMaxBooks() {
+        const val = parseInt(document.getElementById("maxBooksInput").value);
+        if (!isNaN(val) && val > 0) {
+            maxBooks = val;
+            localStorage.setItem("maxBooksAllowed", maxBooks);
+            alert("Max books per borrower updated.");
+        } else {
+            alert("Please enter a valid number.");
+        }
     }
-}
 
-// Enable Admin Mode with Ctrl + A
-document.addEventListener('keydown', function (e) {
-    if (e.ctrlKey && e.key.toLowerCase() === 'a') {
-        e.preventDefault(); // Prevent "Select All"
-        toggleAdmin();
+    document.addEventListener('keydown', function (e) {
+        if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            toggleAdmin();
+        }
+    });
+
+    let refreshTimeout;
+    function resetInactivityTimer() {
+        if (refreshTimeout) clearTimeout(refreshTimeout);
+        refreshTimeout = setTimeout(async () => {
+            await loadAllData();
+            location.reload();
+        }, 300000);
     }
-});
+    ['keydown', 'mousemove', 'mousedown', 'touchstart'].forEach(evt => {
+        document.addEventListener(evt, resetInactivityTimer, true);
+    });
 
-// Auto refresh on inactivity
-let refreshTimeout;
-function resetInactivityTimer() {
-    if (refreshTimeout) clearTimeout(refreshTimeout);
-    // Reload all data from server on inactivity refresh
-    refreshTimeout = setTimeout(async () => {
-        await loadAllData();
-        location.reload(); // Also reloads page, clearing receipts etc.
-    }, 300000); // 30 seconds
-}
-['keydown', 'mousemove', 'mousedown', 'touchstart'].forEach(evt => {
-    document.addEventListener(evt, resetInactivityTimer, true);
-});
-
-
-// --- Initial calls ---
-resetInactivityTimer();
-loadAllData(); // Call this once when the page loads to populate data
+    resetInactivityTimer();
+    loadAllData();
 </script>
 </body>
 </html>
