@@ -401,193 +401,193 @@
     </div>
 
     <script>
-        const BASE_URL = 'https://bold-filly-noble.ngrok-free.app'; // IMPORTANT: Keep this updated with your actual Tailscale URL!
+    const BASE_URL = 'https://bold-filly-noble.ngrok-free.app'; // IMPORTANT: Keep this updated with your actual Tailscale URL!
+    const NGROK_HEADERS = { 'ngrok-skip-browser-warning': 'true' };
 
-        const gallery = document.getElementById('gallery');
-        const uploadForm = document.getElementById('uploadForm');
-        const searchForm = document.getElementById('searchForm');
-        const searchInput = document.getElementById('searchInput');
-        const loadMore = document.getElementById('loadMore');
-        const previewImg = document.getElementById('previewImg');
+    const gallery = document.getElementById('gallery');
+    const uploadForm = document.getElementById('uploadForm');
+    const searchForm = document.getElementById('searchForm');
+    const searchInput = document.getElementById('searchInput');
+    const loadMore = document.getElementById('loadMore');
+    const previewImg = document.getElementById('previewImg');
 
-        // Full Meme Overlay elements
-        const fullMemeOverlay = document.getElementById('fullMemeOverlay');
-        const fullMemeImg = document.getElementById('fullMemeImg');
-        const fullMemeTitle = document.getElementById('fullMemeTitle');
-        const fullMemeDescription = document.getElementById('fullMemeDescription');
-        const fullMemeNumber = document.getElementById('fullMemeNumber');
-        const closeButton = document.querySelector('.close-button');
+    // Full Meme Overlay elements
+    const fullMemeOverlay = document.getElementById('fullMemeOverlay');
+    const fullMemeImg = document.getElementById('fullMemeImg');
+    const fullMemeTitle = document.getElementById('fullMemeTitle');
+    const fullMemeDescription = document.getElementById('fullMemeDescription');
+    const fullMemeNumber = document.getElementById('fullMemeNumber');
+    const closeButton = document.querySelector('.close-button');
 
+    let offset = 0;
+    const limit = 10;
+    let searching = false;
 
-        let offset = 0;
-        const limit = 10;
-        let searching = false;
+    function createMemeCard(meme) {
+        const card = document.createElement('div');
+        card.className = 'meme-card';
+        // Add data attributes to store full information for click event
+        card.dataset.title = meme.title;
+        card.dataset.description = meme.description;
+        card.dataset.filepath = BASE_URL + meme.filepath; // Store full path for convenience
+        card.dataset.number = meme.number; // Store the meme number
 
-        function createMemeCard(meme) {
-            const card = document.createElement('div');
-            card.className = 'meme-card';
-            // Add data attributes to store full information for click event
-            card.dataset.title = meme.title;
-            card.dataset.description = meme.description;
-            card.dataset.filepath = BASE_URL + meme.filepath; // Store full path for convenience
-            card.dataset.number = meme.number; // Store the meme number
+        card.innerHTML = `
+            <img src="${BASE_URL + meme.filepath}" alt="${meme.title}" loading="lazy" />
+            <div class="meme-card-content">
+                <h3>${meme.title}</h3>
+                <p>${meme.description}</p>
+            </div>
+        `;
 
-            card.innerHTML = `
-                <img src="${BASE_URL + meme.filepath}" alt="${meme.title}" loading="lazy" />
-                <div class="meme-card-content">
-                    <h3>${meme.title}</h3>
-                    <p>${meme.description}</p>
-                </div>
-            `;
+        // Add click event listener to the card
+        card.addEventListener('click', () => {
+            showFullMeme(meme); // Pass the entire meme object
+        });
 
-            // Add click event listener to the card
-            card.addEventListener('click', () => {
-                showFullMeme(meme); // Pass the entire meme object
+        return card;
+    }
+
+    // Function to display the full meme
+    function showFullMeme(meme) {
+        fullMemeImg.src = BASE_URL + meme.filepath;
+        fullMemeImg.alt = meme.title;
+        fullMemeTitle.textContent = meme.title;
+        fullMemeDescription.textContent = meme.description;
+        fullMemeNumber.textContent = meme.number;
+        fullMemeOverlay.classList.add('visible');
+        document.body.style.overflow = 'hidden'; // Prevent scrolling body when overlay is active
+    }
+
+    // Function to hide the full meme overlay
+    function hideFullMeme() {
+        fullMemeOverlay.classList.remove('visible');
+        document.body.style.overflow = ''; // Restore body scrolling
+    }
+
+    // Event listener for the close button
+    closeButton.addEventListener('click', hideFullMeme);
+
+    // Event listener to close overlay when clicking outside the content
+    fullMemeOverlay.addEventListener('click', (e) => {
+        if (e.target === fullMemeOverlay) { // Only close if clicking the overlay background itself
+            hideFullMeme();
+        }
+    });
+
+    // Event listener for ESC key to close overlay
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fullMemeOverlay.classList.contains('visible')) {
+            hideFullMeme();
+        }
+    });
+
+    async function loadMemes(reset = false) {
+        const url = searching
+            ? `${BASE_URL}/search?q=${encodeURIComponent(searchInput.value)}`
+            : `${BASE_URL}/memes?offset=${offset}&limit=${limit}`;
+
+        try {
+            const res = await fetch(url, { headers: NGROK_HEADERS });
+            if (!res.ok) {
+                throw new Error(`HTTP error! status: ${res.status}`);
+            }
+            const memes = await res.json();
+
+            if (reset) {
+                gallery.innerHTML = '';
+                offset = 0;
+            }
+            memes.forEach(meme => gallery.appendChild(createMemeCard(meme)));
+            if (!searching) offset += limit;
+
+            if (memes.length < limit && !searching) { // Only hide if not searching and less than limit
+                loadMore.style.display = 'none';
+            } else if (!searching) { // Show if not searching and might have more
+                loadMore.style.display = 'block';
+            } else if (searching && memes.length === 0) { // If searching and no results
+                gallery.innerHTML = '<p style="text-align: center; color: #555;">No memes found matching your search.</p>';
+                loadMore.style.display = 'none';
+            } else if (searching && memes.length > 0) { // If searching and found results, hide load more
+                loadMore.style.display = 'none'; // Search results typically aren't paginated with load more
+            }
+
+        } catch (error) {
+            console.error("Failed to load memes:", error);
+            if (reset) gallery.innerHTML = '<p style="text-align: center; color: red;">Failed to load memes. Please try again later.</p>';
+        }
+    }
+
+    uploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(uploadForm);
+
+        try {
+            const response = await fetch(`${BASE_URL}/upload`, {
+                method: 'POST',
+                body: formData,
+                headers: NGROK_HEADERS
             });
 
-            return card;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Upload failed! Status: ${response.status}, Message: ${errorText}`);
+            }
+
+            alert('Meme uploaded successfully!');
+            uploadForm.reset();
+            previewImg.style.display = 'none';
+            offset = 0;
+            loadMemes(true);
+
+        } catch (error) {
+            console.error("Error uploading meme:", error);
+            alert(`Error uploading meme: ${error.message}`);
         }
+    });
 
-        // Function to display the full meme
-        function showFullMeme(meme) {
-            fullMemeImg.src = BASE_URL + meme.filepath;
-            fullMemeImg.alt = meme.title;
-            fullMemeTitle.textContent = meme.title;
-            fullMemeDescription.textContent = meme.description;
-            fullMemeNumber.textContent = meme.number;
-            fullMemeOverlay.classList.add('visible');
-            document.body.style.overflow = 'hidden'; // Prevent scrolling body when overlay is active
+    uploadForm.elements.meme.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                previewImg.src = event.target.result;
+                previewImg.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        } else {
+            previewImg.src = '';
+            previewImg.style.display = 'none';
         }
+    });
 
-        // Function to hide the full meme overlay
-        function hideFullMeme() {
-            fullMemeOverlay.classList.remove('visible');
-            document.body.style.overflow = ''; // Restore body scrolling
-        }
+    searchForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        searching = true;
+        offset = 0;
+        loadMemes(true);
+    });
 
-        // Event listener for the close button
-        closeButton.addEventListener('click', hideFullMeme);
-
-        // Event listener to close overlay when clicking outside the content
-        fullMemeOverlay.addEventListener('click', (e) => {
-            if (e.target === fullMemeOverlay) { // Only close if clicking the overlay background itself
-                hideFullMeme();
-            }
-        });
-
-        // Event listener for ESC key to close overlay
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && fullMemeOverlay.classList.contains('visible')) {
-                hideFullMeme();
-            }
-        });
-
-
-        async function loadMemes(reset = false) {
-            const url = searching
-                ? `${BASE_URL}/search?q=${encodeURIComponent(searchInput.value)}`
-                : `${BASE_URL}/memes?offset=${offset}&limit=${limit}`;
-
-            try {
-                const res = await fetch(url);
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                const memes = await res.json();
-
-                if (reset) {
-                    gallery.innerHTML = '';
-                    offset = 0;
-                }
-                memes.forEach(meme => gallery.appendChild(createMemeCard(meme)));
-                if (!searching) offset += limit;
-
-                if (memes.length < limit && !searching) { // Only hide if not searching and less than limit
-                    loadMore.style.display = 'none';
-                } else if (!searching) { // Show if not searching and might have more
-                    loadMore.style.display = 'block';
-                } else if (searching && memes.length === 0) { // If searching and no results
-                     gallery.innerHTML = '<p style="text-align: center; color: #555;">No memes found matching your search.</p>';
-                     loadMore.style.display = 'none';
-                } else if (searching && memes.length > 0) { // If searching and found results, hide load more
-                    loadMore.style.display = 'none'; // Search results typically aren't paginated with load more
-                }
-
-
-            } catch (error) {
-                console.error("Failed to load memes:", error);
-                if (reset) gallery.innerHTML = '<p style="text-align: center; color: red;">Failed to load memes. Please try again later.</p>';
-            }
-        }
-
-        uploadForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(uploadForm);
-
-            try {
-                const response = await fetch(`${BASE_URL}/upload`, {
-                    method: 'POST',
-                    body: formData,
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`Upload failed! Status: ${response.status}, Message: ${errorText}`);
-                }
-
-                alert('Meme uploaded successfully!');
-                uploadForm.reset();
-                previewImg.style.display = 'none';
-                offset = 0;
-                loadMemes(true);
-
-            } catch (error) {
-                console.error("Error uploading meme:", error);
-                alert(`Error uploading meme: ${error.message}`);
-            }
-        });
-
-        uploadForm.elements.meme.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(event) {
-                    previewImg.src = event.target.result;
-                    previewImg.style.display = 'block';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                previewImg.src = '';
-                previewImg.style.display = 'none';
-            }
-        });
-
-        searchForm.addEventListener('submit', (e) => {
-            e.preventDefault();
+    searchInput.addEventListener('input', () => {
+        if (searchInput.value.trim() === '') {
+            searching = false;
+            offset = 0;
+            loadMemes(true);
+        } else if (!searching) {
             searching = true;
             offset = 0;
             loadMemes(true);
-        });
+        }
+    });
 
-        searchInput.addEventListener('input', () => {
-            if (searchInput.value.trim() === '') {
-                searching = false;
-                offset = 0;
-                loadMemes(true);
-            } else if (!searching) {
-                searching = true;
-                offset = 0;
-                loadMemes(true);
-            }
-        });
+    loadMore.addEventListener('click', () => {
+        if (!searching) {
+            loadMemes();
+        }
+    });
 
-        loadMore.addEventListener('click', () => {
-            if (!searching) {
-                loadMemes();
-            }
-        });
+    loadMemes();
+</script>
 
-        loadMemes();
-    </script>
 </body>
 </html>
