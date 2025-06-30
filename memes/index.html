@@ -417,6 +417,18 @@
     </header>
 
     <div class="container">
+        
+
+         <form id="searchForm">
+            <input type="text" id="searchInput" placeholder="Search memes by title or description..." />
+        </form>
+
+        
+
+        <div id="gallery"></div>
+        <button id="loadMore">Load More Memes</button>
+
+
         <form id="uploadForm">
             <h2>Upload a New Meme</h2>
             <input type="file" name="meme" accept="image/*" required />
@@ -425,15 +437,7 @@
             <textarea name="description" placeholder="A brief description or relatable text..." required></textarea>
             <button type="submit">Upload Meme</button>
         </form>
-
-        
-
-        <div id="gallery"></div>
-        <button id="loadMore">Load More Memes</button>
-
-        <form id="searchForm">
-            <input type="text" id="searchInput" placeholder="Search memes by title or description..." />
-        </form>
+       
     </div>
 
     <div id="fullMemeOverlay">
