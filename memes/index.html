@@ -4,11 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
  <meta http-equiv="Content-Security-Policy" content="
-    default-src 'self' https://cdn.ngrok.com 'unsafe-eval' 'unsafe-inline'; 
-    img-src 'self' data: https://*.ngrok-free.app https:; 
-    script-src 'self' https://*.ngrok-free.app 'unsafe-inline' 'unsafe-eval'; 
-    style-src 'self' 'unsafe-inline' https://*.ngrok-free.app;
-  ">
+  default-src 'self' https://cdn.ngrok.com 'unsafe-eval' 'unsafe-inline'; 
+  connect-src 'self' https://*.ngrok-free.app https:;
+  img-src 'self' data: https://*.ngrok-free.app https:;
+  script-src 'self' https://*.ngrok-free.app 'unsafe-inline' 'unsafe-eval'; 
+  style-src 'self' 'unsafe-inline' https://*.ngrok-free.app;
+">
+
     <title>Memes :/</title>
     <style>
     
