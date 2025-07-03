@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-     <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        img-src 'self' https://bold-filly-noble.ngrok-free.app data:;
-        connect-src 'self' https://bold-filly-noble.ngrok-free.app;
-        script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; ">
+ <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' https://cdn.ngrok.com 'unsafe-eval' 'unsafe-inline'; 
+    img-src 'self' data: https://*.ngrok-free.app https:; 
+    script-src 'self' https://*.ngrok-free.app 'unsafe-inline' 'unsafe-eval'; 
+    style-src 'self' 'unsafe-inline' https://*.ngrok-free.app;
+  ">
     <title>Memes :/</title>
     <style>
     
