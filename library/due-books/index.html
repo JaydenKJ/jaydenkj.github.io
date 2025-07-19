@@ -1,3 +1,4 @@
+<!--This has hopefully been converted to work with free ngrok tier-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -167,7 +168,22 @@
     try {
         // Clear the #overDue div to prevent print issues
 
-        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow');
+        //const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow');
+        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow', {
+              method: 'GET',
+              headers: {
+                'ngrok-skip-browser-warning': 'true'
+              }
+            });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const books = await response.json();
+
+        const overDueDiv = document.getElementById('overDue');
+        overDueDiv.innerHTML = ''; // Clear previous content
+
+        if (books.length === 0) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -211,7 +227,22 @@ async function getBooksDueTomorrowAndPrint() {
         // Clear the #overDue div to prevent print issues
         document.getElementById('overDue').innerHTML = '';
 
-        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow');
+        //const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow');
+        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow', {
+              method: 'GET',
+              headers: {
+                'ngrok-skip-browser-warning': 'true'
+              }
+            });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const books = await response.json();
+
+        const overDueDiv = document.getElementById('overDue');
+        overDueDiv.innerHTML = ''; // Clear previous content
+
+        if (books.length === 0) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -257,7 +288,22 @@ async function getOverdueBooks() {
     try {
         // Clear the #dueTomorrow div to prevent print issues
 
-        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue');
+        //const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue');
+        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue', {
+              method: 'GET',
+              headers: {
+                'ngrok-skip-browser-warning': 'true'
+              }
+            });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const books = await response.json();
+
+        const overDueDiv = document.getElementById('overDue');
+        overDueDiv.innerHTML = ''; // Clear previous content
+
+        if (books.length === 0) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -301,7 +347,22 @@ async function getOverdueBooksAndPrint() {
         // Clear the #dueTomorrow div to prevent print issues
         document.getElementById('dueTomorrow').innerHTML = '';
 
-        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue');
+        //const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue');
+        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue', {
+              method: 'GET',
+              headers: {
+                'ngrok-skip-browser-warning': 'true'
+              }
+            });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const books = await response.json();
+
+        const overDueDiv = document.getElementById('overDue');
+        overDueDiv.innerHTML = ''; // Clear previous content
+
+        if (books.length === 0) {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
