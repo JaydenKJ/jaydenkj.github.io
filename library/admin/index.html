@@ -796,7 +796,7 @@ async function saveBookEdits(originalBarcode) {
     }
 
     try {
-        const response = await fetch(`${API_BASE_URL}/books/${originalBarcode}`, {headers: API_HEADERS}, {
+        const response = await fetch(`${API_BASE_URL}/books/${originalBarcode}`,{
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
