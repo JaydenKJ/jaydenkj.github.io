@@ -311,7 +311,7 @@
     async function searchBooks() {
         const query = document.getElementById("searchTitle").value.trim().toLowerCase();
         const resultsDiv = document.getElementById("results");
-        resultsDiv.innerHTML = ""; // Clear previous results
+        resultsDiv.innerHTML = "<span class="loader"></span>"; // Clear previous results
 
         let matches = [];
 
