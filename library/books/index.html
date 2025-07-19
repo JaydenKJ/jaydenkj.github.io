@@ -338,6 +338,9 @@
                 matches = searchResults.map(book => ({ barcode: book.barcode, book }));
             }
 
+          // Remove loader before displaying book cards
+resultsDiv.innerHTML = '';
+
             // Re-fetch checkouts and holds to ensure the most up-to-date status
             const checkoutsResponse = await fetch(`${API_BASE_URL}/checkouts/all`, {headers: API_HEADERS});
             if (!checkoutsResponse.ok) throw new Error('Failed to fetch checkouts for status update');
