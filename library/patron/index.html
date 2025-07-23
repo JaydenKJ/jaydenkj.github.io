@@ -126,7 +126,7 @@
 
     const API_HEADERS = {"ngrok-skip-browser-warning": "true"};
 
-    fetch("https://bold-filly-noble.ngrok-free.app/api", { method: "GET", cache: "no-store" })
+    fetch("https://fast-prawn-humorous.ngrok-free.app/api", { method: "GET", cache: "no-store" })
       .then(res => {
         if (res.ok) {
           const el = document.getElementById("status");
@@ -167,7 +167,7 @@ async function lookupAccount() { // Made async to use await with fetch
 
     try {
         // Fetch current checkouts from your API, filtered by borrowerCode
-        const response = await fetch(`https://bold-filly-noble.ngrok-free.app/api/checkouts/current?borrowerCode=${encodeURIComponent(cardNumber)}`, {headers: API_HEADERS});
+        const response = await fetch(`https://fast-prawn-humorous.ngrok-free.app/api/checkouts/current?borrowerCode=${encodeURIComponent(cardNumber)}`, {headers: API_HEADERS});
 
         if (!response.ok) {
             const errorData = await response.json();
@@ -210,7 +210,7 @@ async function renewBook(checkoutId) {
     msgBox.style.display = "none"; // Hide previous messages
 
     try {
-        const response = await fetch(`https://bold-filly-noble.ngrok-free.app/api/checkouts/renew/${checkoutId}`,  {
+        const response = await fetch(`https://fast-prawn-humorous.ngrok-free.app/api/checkouts/renew/${checkoutId}`,  {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
