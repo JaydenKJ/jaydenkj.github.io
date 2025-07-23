@@ -146,7 +146,7 @@
         Connecting...
     </div>
     <script>
-    fetch("https://bold-filly-noble.ngrok-free.app/api", { method: "GET", cache: "no-store" })
+    fetch("https://fast-prawn-humorous.ngrok-free.app/api", { method: "GET", cache: "no-store" })
       .then(res => {
         if (res.ok) {
           const el = document.getElementById("status");
@@ -166,7 +166,7 @@
     <script>
         async function getBooksDueTomorrow() {
     try {
-        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/due/tomorrow', {
+        const response = await fetch('https://fast-prawn-humorous.ngrok-free.app/api/checkouts/due/tomorrow', {
             method: 'GET',
             headers: { 'ngrok-skip-browser-warning': 'true' }
         });
@@ -218,7 +218,7 @@ async function getBooksDueTomorrowAndPrint() {
 
 async function getOverdueBooks() {
     try {
-        const response = await fetch('https://bold-filly-noble.ngrok-free.app/api/checkouts/overdue', {
+        const response = await fetch('https://fast-prawn-humorous.ngrok-free.app/api/checkouts/overdue', {
             method: 'GET',
             headers: { 'ngrok-skip-browser-warning': 'true' }
         });
