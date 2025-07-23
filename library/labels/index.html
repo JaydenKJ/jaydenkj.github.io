@@ -294,7 +294,7 @@
         const response = await fetch(`${API_BASE_URL}/books/search?query=${encodeURIComponent(query)}`, {
           method: 'GET',
           headers: {
-            'ngrok-skip-browser-warning': 'true'                           
+            'ngrok-skip-browser-warning': 'true'}                           
         });
         if (!response.ok) {
           const errorData = await response.json();
