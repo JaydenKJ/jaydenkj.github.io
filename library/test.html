@@ -52,7 +52,8 @@
             <h2 class="text-2xl font-semibold text-gray-800 mb-4">Book Details</h2>
             <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
                 <div class="flex-shrink-0 w-32 h-48 md:w-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden shadow-md border border-gray-300 flex items-center justify-center">
-                    <img id="bookCover" class="book-cover-img" src="#" alt="Book Cover">
+                    <!-- Initial src is empty to prevent immediate placeholder requests -->
+                    <img id="bookCover" class="book-cover-img" src="" alt="Book Cover">
                 </div>
                 <div class="flex-grow text-center md:text-left">
                     <p class="text-xl font-bold text-gray-900 mb-2" id="bookTitle"></p>
@@ -82,6 +83,12 @@
             // IMPORTANT: If your backend is not on localhost:3000, change this!
             const API_BASE_URL = 'https://fast-prawn-humorous.ngrok-free.app';
 
+            // Function to set the placeholder image
+            const setPlaceholderImage = () => {
+                bookCover.src = 'https://placehold.co/192x256/e2e8f0/64748b?text=No+Cover';
+                bookCover.alt = 'No Cover Available';
+            };
+
             fetchBookBtn.addEventListener('click', async () => {
                 const barcode = barcodeInput.value.trim();
 
@@ -90,6 +97,7 @@
                 errorMessageDiv.classList.add('hidden');
                 errorMessageSpan.textContent = '';
                 loadingIndicator.classList.remove('hidden'); // Show loading indicator
+                setPlaceholderImage(); // Reset image to placeholder
 
                 if (!barcode) {
                     errorMessageSpan.textContent = 'Please enter a book barcode.';
@@ -99,9 +107,10 @@
                 }
 
                 try {
+                    // Fetch book details with ngrok header
                     const response = await fetch(`${API_BASE_URL}/api/books/${barcode}`, {
                         headers: {
-                            'ngrok-skip-browser-warning': 'true' // Add this header
+                            'ngrok-skip-browser-warning': 'true'
                         }
                     });
                     const data = await response.json();
@@ -115,31 +124,48 @@
                         bookCallNumber.textContent = `Call Number: ${data.call_number || 'N/A'}`;
                         bookBarcodeDisplay.textContent = `Barcode: ${data.barcode || 'N/A'}`;
 
-                        // Set book cover image
+                        // Handle book cover image
                         if (data.coverImageUrl) {
-                            bookCover.src = `${API_BASE_URL}${data.coverImageUrl}`;
-                            bookCover.alt = `Cover for ${data.title || 'book'}`;
-                            // Add an error handler for the image in case it fails to load
-                            bookCover.onerror = () => {
-                                bookCover.src = '#';
-                                bookCover.alt = 'No Cover Available';
-                            };
+                            try {
+                                // Fetch the image itself with the ngrok header
+                                const imageResponse = await fetch(`${API_BASE_URL}${data.coverImageUrl}`, {
+                                    headers: {
+                                        'ngrok-skip-browser-warning': 'true'
+                                    }
+                                });
+
+                                if (imageResponse.ok) {
+                                    const imageBlob = await imageResponse.blob();
+                                    const imageUrl = URL.createObjectURL(imageBlob);
+                                    bookCover.src = imageUrl;
+                                    bookCover.alt = `Cover for ${data.title || 'book'}`;
+                                    // Revoke the object URL when the image is no longer needed (e.g., when a new book is fetched)
+                                    bookCover.onload = () => URL.revokeObjectURL(imageUrl);
+                                } else {
+                                    console.error('Failed to fetch image:', imageResponse.status, imageResponse.statusText);
+                                    setPlaceholderImage(); // Fallback to placeholder on image fetch error
+                                }
+                            } catch (imageError) {
+                                console.error('Error fetching image:', imageError);
+                                setPlaceholderImage(); // Fallback to placeholder on image fetch error
+                            }
                         } else {
-                            // Use a placeholder if no cover image URL is provided
-                            bookCover.src = '#';
-                            bookCover.alt = 'No Cover Available';
+                            // Use a placeholder if no cover image URL is provided by the backend
+                            setPlaceholderImage();
                         }
                         bookDetailsDiv.classList.remove('hidden');
                     } else {
                         // Book not found or other server error
                         errorMessageSpan.textContent = data.message || 'An unknown error occurred.';
                         errorMessageDiv.classList.remove('hidden');
+                        setPlaceholderImage(); // Ensure placeholder is shown on error
                     }
                 } catch (error) {
                     loadingIndicator.classList.add('hidden'); // Hide loading indicator
                     console.error('Fetch error:', error);
                     errorMessageSpan.textContent = 'Could not connect to the server or an unexpected error occurred.';
                     errorMessageDiv.classList.remove('hidden');
+                    setPlaceholderImage(); // Ensure placeholder is shown on error
                 }
             });
         });
