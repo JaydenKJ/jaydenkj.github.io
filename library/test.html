@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Cover & Info Lookup</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general body styling */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Light gray background */
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align to top to prevent jumping on content load */
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        /* Ensure image maintains aspect ratio and fits container */
+        .book-cover-img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain; /* Ensures the whole image is visible */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Book Lookup</h1>
+
+        <div class="mb-6">
+            <label for="barcodeInput" class="block text-gray-700 text-sm font-semibold mb-2">Enter Book Barcode:</label>
+            <input type="text" id="barcodeInput" placeholder="e.g., 12345"
+                   class="shadow-sm appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 ease-in-out">
+        </div>
+
+        <button id="fetchBookBtn"
+                class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg focus:outline-none focus:shadow-outline transition duration-300 ease-in-out transform hover:scale-105">
+            Get Book Info
+        </button>
+
+        <div id="loadingIndicator" class="hidden mt-4 text-center text-blue-500 font-medium">
+            Loading book details...
+        </div>
+
+        <div id="errorMessage" class="hidden mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative" role="alert">
+            <span class="block sm:inline"></span>
+        </div>
+
+        <div id="bookDetails" class="mt-8 p-6 bg-gray-50 rounded-lg shadow-inner hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Book Details</h2>
+            <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+                <div class="flex-shrink-0 w-32 h-48 md:w-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden shadow-md border border-gray-300 flex items-center justify-center">
+                    <img id="bookCover" class="book-cover-img" src="https://placehold.co/192x256/e2e8f0/64748b?text=No+Cover" alt="Book Cover">
+                </div>
+                <div class="flex-grow text-center md:text-left">
+                    <p class="text-xl font-bold text-gray-900 mb-2" id="bookTitle"></p>
+                    <p class="text-lg text-gray-700 mb-1" id="bookAuthor"></p>
+                    <p class="text-md text-gray-600" id="bookCallNumber"></p>
+                    <p class="text-md text-gray-600" id="bookBarcodeDisplay"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const barcodeInput = document.getElementById('barcodeInput');
+            const fetchBookBtn = document.getElementById('fetchBookBtn');
+            const bookDetailsDiv = document.getElementById('bookDetails');
+            const bookTitle = document.getElementById('bookTitle');
+            const bookAuthor = document.getElementById('bookAuthor');
+            const bookCallNumber = document.getElementById('bookCallNumber');
+            const bookBarcodeDisplay = document.getElementById('bookBarcodeDisplay');
+            const bookCover = document.getElementById('bookCover');
+            const errorMessageDiv = document.getElementById('errorMessage');
+            const errorMessageSpan = errorMessageDiv.querySelector('span');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+
+            // Base URL for your backend API
+            // IMPORTANT: If your backend is not on localhost:3000, change this!
+            const API_BASE_URL = 'https://fast-prawn-humorous.ngrok-free.app';
+
+            fetchBookBtn.addEventListener('click', async () => {
+                const barcode = barcodeInput.value.trim();
+
+                // Clear previous results and errors
+                bookDetailsDiv.classList.add('hidden');
+                errorMessageDiv.classList.add('hidden');
+                errorMessageSpan.textContent = '';
+                loadingIndicator.classList.remove('hidden'); // Show loading indicator
+
+                if (!barcode) {
+                    errorMessageSpan.textContent = 'Please enter a book barcode.';
+                    errorMessageDiv.classList.remove('hidden');
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_BASE_URL}/api/books/${barcode}`, {
+                        headers: {
+                            'ngrok-skip-browser-warning': 'true' // Add this header
+                        }
+                    });
+                    const data = await response.json();
+
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+
+                    if (response.ok) {
+                        // Book found, display details
+                        bookTitle.textContent = data.title || 'N/A';
+                        bookAuthor.textContent = `Author: ${data.author || 'N/A'}`;
+                        bookCallNumber.textContent = `Call Number: ${data.call_number || 'N/A'}`;
+                        bookBarcodeDisplay.textContent = `Barcode: ${data.barcode || 'N/A'}`;
+
+                        // Set book cover image
+                        if (data.coverImageUrl) {
+                            bookCover.src = `${API_BASE_URL}${data.coverImageUrl}`;
+                            bookCover.alt = `Cover for ${data.title || 'book'}`;
+                            // Add an error handler for the image in case it fails to load
+                            bookCover.onerror = () => {
+                                bookCover.src = 'https://placehold.co/192x256/e2e8f0/64748b?text=No+Cover';
+                                bookCover.alt = 'No Cover Available';
+                            };
+                        } else {
+                            // Use a placeholder if no cover image URL is provided
+                            bookCover.src = 'https://placehold.co/192x256/e2e8f0/64748b?text=No+Cover';
+                            bookCover.alt = 'No Cover Available';
+                        }
+                        bookDetailsDiv.classList.remove('hidden');
+                    } else {
+                        // Book not found or other server error
+                        errorMessageSpan.textContent = data.message || 'An unknown error occurred.';
+                        errorMessageDiv.classList.remove('hidden');
+                    }
+                } catch (error) {
+                    loadingIndicator.classList.add('hidden'); // Hide loading indicator
+                    console.error('Fetch error:', error);
+                    errorMessageSpan.textContent = 'Could not connect to the server or an unexpected error occurred.';
+                    errorMessageDiv.classList.remove('hidden');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
