@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="header">Minecraft Server</div>
+    <div class="content">
+        <div class="section">
+            <h2>Current Link</h2>
+            <div class="link" id="output"></div>
+            <div class="link-copy" id="copy">Click to copy</div>
+        </div>
+        <div class="section">
+            <h2>Status</h2>
+            <div class="status" id="status"></div>
+            <h2>Players</h2>
+            <div class="players" id="players">
+                
+
+
+                
+
+            </div>
+        </div>
+    </div>
+    
+    
+<script>
+async function main() {
+  try {
+    // Step 1: fetch the Minecraft server link (raw text)
+    const linkRes = await fetch('https://gist.githubusercontent.com/JaydenKJ/3dfa04647267cf116d4f237a4b15c917/raw/f66b8a71b90d535bd1e0a185e777304fd8ddf0b6/gistfile1.txt');
+    const serverLink = (await linkRes.text()).trim();
+    document.getElementById('output').textContent = serverLink;
+
+    // Step 2: fetch status from mcstatus.io
+    const apiUrl = `https://api.mcstatus.io/v2/status/java/${serverLink}`;
+    const statusRes = await fetch(apiUrl);
+    const statusData = await statusRes.json();
+
+    // Step 3: update status
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = statusData.online ? 'Online' : 'Offline';
+
+    // Step 4: update players
+    const playersEl = document.getElementById('players');
+    playersEl.innerHTML = ''; // clear old list
+    if (statusData.online && statusData.players?.list?.length) {
+      statusData.players.list.forEach(player => {
+        const div = document.createElement('div');
+        div.textContent = player.name_clean;
+        playersEl.appendChild(div);
+      });
+    } else {
+      playersEl.textContent = 'No players online';
+    }
+
+    // Step 5: add click-to-copy
+    const output = document.getElementById('output');
+    const copyEl = document.getElementById('copy');
+    output.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(serverLink);
+      if (copyEl) {
+        copyEl.id = 'copied';
+        copyEl.textContent = 'Copied!';
+      }
+    });
+
+  } catch (err) {
+    console.error(err);
+    document.getElementById('status').textContent = 'Error fetching data';
+  }
+}
+
+main();
+</script>
+</body>
+</html>
