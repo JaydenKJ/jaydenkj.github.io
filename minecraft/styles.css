@@ -1,0 +1,75 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap");
+body {
+  background-color: white;
+  font-family: "Roboto";
+}
+body .header {
+  padding: 1em;
+  font-size: 1.8em;
+  text-align: center;
+  font-weight: 600;
+}
+body .content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body .content .section {
+  height: -moz-fit-content;
+  height: fit-content;
+  padding: 1em;
+  border: none;
+  border-radius: 1em;
+  box-shadow: 0.2em 0.2em 1em rgb(177, 177, 177);
+  margin: 1em;
+  text-align: center;
+}
+body .content .section .link {
+  background-color: rgb(190, 190, 190);
+  padding: 0.5em;
+  border-radius: 0.8em;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+body .content .section h2 {
+  margin: 0;
+  margin-bottom: 0.5em;
+}
+body .content .section .link-copy {
+  text-align: center;
+  margin-top: 0.5em;
+  display: none;
+}
+body .content .section .status {
+  margin-bottom: 1em;
+  text-align: center;
+}
+body .content .section .players {
+  background-color: rgb(223, 223, 223);
+  border-radius: 1em;
+  padding: 0.5em;
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 20em;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+}
+body .content .section .players div {
+  background-color: rgb(190, 190, 190);
+  padding: 0.5em;
+  border-radius: 0.5em;
+  width: -moz-fit-content;
+  width: fit-content;
+  margin: 0.5em;
+  text-align: center;
+}
+
+@media only screen and (min-width: 768px) {
+  body .content {
+    flex-direction: row;
+  }
+  body .content .section .link-copy {
+    display: block;
+  }
+}/*# sourceMappingURL=styles.css.map */
