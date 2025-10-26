@@ -33,7 +33,7 @@
 async function main() {
   try {
     // Step 1: fetch the Minecraft server link (raw text)
-    const linkRes = await fetch('https://gist.githubusercontent.com/JaydenKJ/3dfa04647267cf116d4f237a4b15c917/raw/f66b8a71b90d535bd1e0a185e777304fd8ddf0b6/gistfile1.txt');
+    const linkRes = await fetch('https://gist.githubusercontent.com/JaydenKJ/3dfa04647267cf116d4f237a4b15c917/raw/ff5dfee06b23272c441dd63c77aa9f685558ef38/gistfile1.txt');
     const serverLink = (await linkRes.text()).trim();
     document.getElementById('output').textContent = serverLink;
 
