@@ -195,6 +195,10 @@
         let fullHistoryData = {}; 
         const API_URL = `https://fast-prawn-humorous.ngrok-free.app`;
 
+        const NGROK_HEADERS = {
+            'ngrok-skip-browser-warning': 'true'
+        };
+
         function init() {
             renderRegister();
             renderSettings();
@@ -213,7 +217,7 @@
 
         async function checkStatus() {
             try {
-                const res = await fetch(`${API_URL}/api/history`, { signal: AbortSignal.timeout(2000) });
+                const res = await fetch(`${API_URL}/api/history`, { headers: NGROK_HEADERS, signal: AbortSignal.timeout(2000) });
                 const isOnline = res.ok;
                 document.getElementById('connection-dot').className = isOnline ? "w-2 h-2 rounded-full bg-green-400 shadow-[0_0_8px_rgba(74,222,128,0.8)]" : "w-2 h-2 rounded-full bg-red-500 animate-pulse";
                 document.getElementById('connection-text').innerText = isOnline ? "ONLINE" : "OFFLINE";
@@ -288,7 +292,7 @@
             const total = cart.reduce((s, i) => s + i.price, 0);
             const saleData = { items: cart, total: total };
             try {
-                const res = await fetch(`${API_URL}/api/order`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(saleData) });
+                const res = await fetch(`${API_URL}/api/order`, { method: 'POST', headers: { ...NGROK_HEADERS, 'Content-Type': 'application/json' }, body: JSON.stringify(saleData) });
                 if (res.ok) { 
                     cart = []; 
                     updateCartUI(); 
@@ -321,7 +325,9 @@
             loader.classList.remove('hidden');
 
             try {
-                const res = await fetch(`${API_URL}/api/history`);
+                const res = await fetch(`${API_URL}/api/history`, {
+                    headers: NGROK_HEADERS
+                });
                 const data = await res.json();
                 fullHistoryData = data; 
                 
@@ -415,7 +421,7 @@
 
         async function confirmReset() {
             try {
-                const res = await fetch(`${API_URL}/api/clear`, { method: 'POST' });
+                const res = await fetch(`${API_URL}/api/clear`, { method: 'POST', headers: NGROK_HEADERS });
                 if (res.ok) { hideResetModal(); showToast("SEASON RESET COMPLETE"); loadHistory(); }
             } catch (e) { alert("Could not reset data."); }
         }
