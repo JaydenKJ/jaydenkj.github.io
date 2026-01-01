@@ -114,7 +114,7 @@
                 ws = new WebSocket(serverUrl);
 
                 ws.onopen = () => {
-                    statusEl.textContent = "Securely Connected";
+                    statusEl.textContent = "Online";
                     statusEl.className = "text-[10px] text-green-500 italic bg-slate-800/50 px-2 py-0.5 rounded border border-slate-700";
                     checkAutoLogin();
                 };
