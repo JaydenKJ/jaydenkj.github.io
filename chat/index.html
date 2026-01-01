@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Moderated Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .message-bubble { max-width: 85%; word-wrap: break-word; }
+        #chat-window { height: calc(100vh - 180px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans overflow-hidden">
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 bg-slate-950 flex items-center justify-center z-50">
+        <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700 w-full max-w-md mx-4">
+            <h1 id="auth-title" class="text-3xl font-bold mb-2 text-center text-blue-400">Chat Login</h1>
+            <p id="auth-help" class="text-slate-400 mb-6 text-center text-sm">Login to start chatting</p>
+            
+            <input type="text" id="user-input" placeholder="Username" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 mb-3 outline-none focus:border-blue-500">
+            <input type="password" id="pass-input" placeholder="Password" class="w-full p-3 rounded-lg bg-slate-900 border border-slate-700 mb-4 outline-none focus:border-blue-500">
+            
+            <div class="flex flex-col gap-2">
+                <button id="login-btn" class="bg-blue-600 hover:bg-blue-500 p-3 rounded-lg font-bold transition-all">Login</button>
+                <button id="toggle-auth" class="text-slate-400 hover:text-white text-sm">Don't have an account? Register</button>
+            </div>
+            <p id="auth-error" class="text-red-400 text-xs mt-4 text-center hidden"></p>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto h-screen flex flex-col p-4">
+        <header class="flex justify-between items-center py-3 border-b border-slate-800">
+            <div>
+                <h2 class="text-xl font-bold text-blue-400">Global Chat</h2>
+                <div id="status" class="text-xs text-yellow-500 italic">Connecting...</div>
+            </div>
+            <div id="user-count" class="bg-slate-800 px-3 py-1 rounded-full text-xs font-mono border border-slate-700 text-slate-400">0 Online</div>
+        </header>
+
+        <div id="chat-window" class="flex-grow overflow-y-auto py-6 space-y-4 pr-2 custom-scrollbar"></div>
+
+        <div class="py-4">
+            <form id="chat-form" class="flex gap-2">
+                <input type="text" id="msg-input" placeholder="Type message..." class="flex-grow p-4 rounded-xl bg-slate-800 border border-slate-700 focus:border-blue-500 outline-none">
+                <button type="submit" class="bg-blue-600 px-6 rounded-xl hover:bg-blue-500 transition-all">Send</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let isModerator = false;
+        let myUser = "";
+        let isRegisterMode = false;
+
+        const authOverlay = document.getElementById('auth-overlay');
+        const loginBtn = document.getElementById('login-btn');
+        const toggleBtn = document.getElementById('toggle-auth');
+        const chatWindow = document.getElementById('chat-window');
+        const statusEl = document.getElementById('status');
+        const userCountEl = document.getElementById('user-count');
+        const errorEl = document.getElementById('auth-error');
+
+        function connect() {
+            // Replace with your ngrok or local Pi IP
+            ws = new WebSocket('ws://6.tcp.us-cal-1.ngrok.io:19113');
+
+            ws.onopen = () => {
+                statusEl.textContent = "Server Online";
+                statusEl.className = "text-xs text-green-500 italic";
+            };
+
+            ws.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                
+                if (data.type === "auth_res") {
+                    if (data.success) {
+                        if (data.mode === "login") {
+                            isModerator = data.is_mod;
+                            authOverlay.classList.add('hidden');
+                            if (data.history) data.history.forEach(m => addMessage(m));
+                        } else {
+                            alert("Registration successful! Please login.");
+                            toggleAuthMode();
+                        }
+                    } else {
+                        errorEl.textContent = data.mode === "login" ? "Invalid credentials" : "Username taken";
+                        errorEl.classList.remove('hidden');
+                    }
+                } else if (data.type === "chat") {
+                    addMessage(data);
+                } else if (data.type === "system") {
+                    addSystemMsg(data.message);
+                    if (data.count) userCountEl.textContent = `${data.count} Online`;
+                } else if (data.type === "delete_evt") {
+                    document.getElementById(`msg-${data.id}`)?.remove();
+                }
+            };
+
+            ws.onclose = () => {
+                statusEl.textContent = "Connection Lost";
+                statusEl.className = "text-xs text-red-500 italic";
+                setTimeout(connect, 3000);
+            };
+        }
+
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('auth-title').textContent = isRegisterMode ? "Create Account" : "Chat Login";
+            document.getElementById('auth-help').textContent = isRegisterMode ? "Pick a unique username" : "Login to start chatting";
+            loginBtn.textContent = isRegisterMode ? "Sign Up" : "Login";
+            toggleBtn.textContent = isRegisterMode ? "Already have an account? Login" : "Don't have an account? Register";
+            errorEl.classList.add('hidden');
+        }
+
+        loginBtn.onclick = () => {
+            const u = document.getElementById('user-input').value.trim();
+            const p = document.getElementById('pass-input').value.trim();
+            if (!u || !p) return;
+            myUser = u;
+            ws.send(JSON.stringify({
+                type: isRegisterMode ? "register" : "login",
+                username: u,
+                password: p
+            }));
+        };
+
+        toggleBtn.onclick = toggleAuthMode;
+
+        function addMessage(data) {
+            const isMe = data.username === myUser;
+            const div = document.createElement('div');
+            div.id = `msg-${data.id}`;
+            div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} mb-4 group`;
+            
+            let deleteBtn = (isModerator) ? 
+                `<button onclick="deleteMsg(${data.id})" class="text-red-400 text-[10px] opacity-0 group-hover:opacity-100 transition-opacity ml-2">Delete</button>` : '';
+
+            div.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-[10px] text-slate-500 px-2">${data.username}</span>
+                    ${deleteBtn}
+                </div>
+                <div class="message-bubble p-3 rounded-2xl shadow-sm ${isMe ? 'bg-blue-600 rounded-tr-none' : 'bg-slate-800 border border-slate-700 rounded-tl-none text-slate-200'}">
+                    ${escapeHtml(data.message)}
+                </div>
+            `;
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function addSystemMsg(text) {
+            const div = document.createElement('div');
+            div.className = "flex justify-center my-2";
+            div.innerHTML = `<span class="bg-slate-800 text-slate-500 text-[10px] px-3 py-1 rounded-full italic border border-slate-700">${text}</span>`;
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        function deleteMsg(id) {
+            ws.send(JSON.stringify({ type: "delete", id: id }));
+        }
+
+        function escapeHtml(t) {
+            const d = document.createElement('div');
+            d.textContent = t;
+            return d.innerHTML;
+        }
+
+        document.getElementById('chat-form').onsubmit = (e) => {
+            e.preventDefault();
+            const inp = document.getElementById('msg-input');
+            if (inp.value.trim() && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ type: "chat", message: inp.value }));
+                inp.value = "";
+            }
+        };
+
+        connect();
+    </script>
+</body>
+</html>
