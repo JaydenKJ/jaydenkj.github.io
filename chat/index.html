@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Chat</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json" />
     <style>
         /* Use dvh (dynamic viewport height) to fix mobile browser chrome issues */
         :root {
@@ -85,6 +86,14 @@
             </form>
         </div>
     </div>
+
+
+    <script>
+        if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/chat/sw.js");
+}
+
+    </script>
 
     <script>
         let ws;
