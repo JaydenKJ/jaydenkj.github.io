@@ -1,10 +1,10 @@
 {
-  "name": "Library System",
-  "short_name": "Library",
-  "description": "A fully-fledged library system for only one library.",
-  "start_url": "/library/",
-  "scope": "/library/",
+  "name": "Chat",
+  "short_name": "Chat",
+  "description": "A basic chatroom",
+  "start_url": "/chat/",
+  "scope": "/chat/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0078d7",
+  "background_color": "#0f172a",
+  "theme_color": "#2563EB",
 }
